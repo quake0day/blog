@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import Comments from "../../components/Comments.astro";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -46,30 +47,9 @@ const fmt = (d: Date) =>
 
   <hr class="my-12 border-stone-200 dark:border-gray-800" />
 
-  <!-- Disqus (preserves old comment thread via disqus_identifier = legacy dir name) -->
-  <section id="comments" class="mb-8">
-    <div id="disqus_thread"></div>
-    <script is:inline define:vars={{ legacy: entry.data.legacyDir ?? entry.slug, slug: entry.slug, title: entry.data.title }}>
-      var disqus_config = function () {
-        // Keep identifier stable across the migration so existing threads stay attached.
-        this.page.identifier = legacy || slug;
-        this.page.url = window.location.origin + "/post/" + slug;
-        this.page.title = title;
-      };
-      (function() {
-        var d = document, s = d.createElement("script");
-        s.src = "https://quakesblog.disqus.com/embed.js";
-        s.setAttribute("data-timestamp", +new Date());
-        (d.head || d.body).appendChild(s);
-      })();
-    </script>
-    <noscript>
-      Please enable JavaScript to view the
-      <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
-    </noscript>
-  </section>
+  <Comments slug={entry.slug} />
 
-  <div class="flex justify-between text-sm">
+  <div class="mt-12 flex justify-between text-sm">
     <a href="/" class="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Home</a>
     <a href="/archive" class="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">All posts →</a>
   </div>

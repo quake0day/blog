@@ -1,0 +1,204 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+<Layout title="评论管理" description="Comment moderation">
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">评论管理</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">只有"已通过"的留言会显示在前台。</p>
+  </header>
+
+  <section id="login-box" class="hidden border border-stone-300 dark:border-gray-700 rounded-lg p-5">
+    <p class="text-sm mb-3">请输入管理密码:</p>
+    <div class="flex gap-2">
+      <input id="pw" type="password" class="flex-1 text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2" autofocus />
+      <button id="login-btn" class="text-sm px-4 py-2 rounded bg-gray-900 dark:bg-white text-white dark:text-gray-900">登录</button>
+    </div>
+    <p id="login-err" class="mt-2 text-sm text-red-600 hidden"></p>
+  </section>
+
+  <section id="admin-box" class="hidden">
+    <div class="flex flex-wrap gap-2 mb-5 text-sm">
+      <button data-filter="pending"  class="filter-btn px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700">Pending <span data-count="pending">·</span></button>
+      <button data-filter="approved" class="filter-btn px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700">Approved <span data-count="approved">·</span></button>
+      <button data-filter="rejected" class="filter-btn px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700">Rejected <span data-count="rejected">·</span></button>
+      <button data-filter="all"      class="filter-btn px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700">All</button>
+      <button id="refresh-btn"       class="ml-auto px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700">↻ Refresh</button>
+      <button id="logout-btn"        class="px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700 text-red-600">Logout</button>
+    </div>
+    <div id="list" class="space-y-4">
+      <p class="text-sm text-gray-500">加载中…</p>
+    </div>
+  </section>
+</Layout>
+
+<script is:inline>
+  (function () {
+    var PW_KEY = "quake0day-admin-pw";
+    var loginBox = document.getElementById("login-box");
+    var adminBox = document.getElementById("admin-box");
+    var pwInput = document.getElementById("pw");
+    var loginBtn = document.getElementById("login-btn");
+    var loginErr = document.getElementById("login-err");
+    var list = document.getElementById("list");
+    var refreshBtn = document.getElementById("refresh-btn");
+    var logoutBtn = document.getElementById("logout-btn");
+    var filterBtns = document.querySelectorAll(".filter-btn");
+    var currentFilter = "pending";
+    var currentPw = localStorage.getItem(PW_KEY) || "";
+
+    function esc(s) {
+      return String(s || "").replace(/[&<>"']/g, function (c) {
+        return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+      });
+    }
+    function fmtDate(ts) {
+      try { return new Date(ts).toLocaleString("zh-CN"); } catch { return ""; }
+    }
+
+    function showLogin(err) {
+      loginBox.classList.remove("hidden");
+      adminBox.classList.add("hidden");
+      if (err) {
+        loginErr.textContent = err;
+        loginErr.classList.remove("hidden");
+      }
+    }
+    function showAdmin() {
+      loginBox.classList.add("hidden");
+      adminBox.classList.remove("hidden");
+      loadList();
+    }
+
+    function tryLogin(pw) {
+      fetch("/api/admin/comments?status=pending", {
+        headers: { "X-Admin-Password": pw },
+      }).then(function (r) {
+        if (r.status === 401) {
+          showLogin("密码错误");
+          localStorage.removeItem(PW_KEY);
+          currentPw = "";
+        } else if (r.ok) {
+          currentPw = pw;
+          localStorage.setItem(PW_KEY, pw);
+          showAdmin();
+        } else {
+          showLogin("服务器错误 " + r.status);
+        }
+      }).catch(function () {
+        showLogin("网络错误");
+      });
+    }
+
+    loginBtn.addEventListener("click", function () {
+      var v = pwInput.value.trim();
+      if (!v) return;
+      tryLogin(v);
+    });
+    pwInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") loginBtn.click();
+    });
+
+    logoutBtn.addEventListener("click", function () {
+      localStorage.removeItem(PW_KEY);
+      currentPw = "";
+      location.reload();
+    });
+    refreshBtn.addEventListener("click", loadList);
+
+    filterBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        currentFilter = b.getAttribute("data-filter");
+        filterBtns.forEach(function (x) { x.classList.remove("bg-gray-900","dark:bg-white","text-white","dark:text-gray-900"); });
+        b.classList.add("bg-gray-900","dark:bg-white","text-white","dark:text-gray-900");
+        loadList();
+      });
+    });
+
+    function loadList() {
+      list.innerHTML = '<p class="text-sm text-gray-500">加载中…</p>';
+      fetch("/api/admin/comments?status=" + encodeURIComponent(currentFilter), {
+        headers: { "X-Admin-Password": currentPw },
+      })
+        .then(function (r) {
+          if (r.status === 401) { showLogin("登录已过期"); throw new Error("401"); }
+          return r.json();
+        })
+        .then(function (data) {
+          // update counts
+          var counts = data.counts || {};
+          document.querySelectorAll("[data-count]").forEach(function (el) {
+            var k = el.getAttribute("data-count");
+            el.textContent = "(" + (counts[k] || 0) + ")";
+          });
+          var rows = data.comments || [];
+          if (!rows.length) {
+            list.innerHTML = '<p class="text-sm text-gray-500 italic">这里没有评论。</p>';
+            return;
+          }
+          list.innerHTML = rows.map(function (c) {
+            var badge = c.status === "approved" ? "bg-green-100 text-green-800"
+                      : c.status === "rejected" ? "bg-red-100 text-red-800"
+                      : "bg-yellow-100 text-yellow-800";
+            var web = c.website ? '<a href="' + esc(c.website) + '" target="_blank" class="underline">🔗</a>' : '';
+            return (
+              '<article class="border border-stone-200 dark:border-gray-800 rounded-lg p-4 bg-stone-50 dark:bg-gray-900/50" data-id="' + c.id + '">' +
+                '<header class="flex items-center justify-between gap-2 mb-2 flex-wrap">' +
+                  '<div class="flex items-center gap-2 flex-wrap">' +
+                    '<span class="text-xs px-2 py-0.5 rounded-full ' + badge + '">' + esc(c.status) + '</span>' +
+                    '<strong class="text-sm">' + esc(c.name) + '</strong>' +
+                    web +
+                    (c.email ? '<span class="text-xs text-gray-500">' + esc(c.email) + '</span>' : '') +
+                    '<a href="/post/' + encodeURIComponent(c.post_slug) + '" target="_blank" class="text-xs text-blue-600 hover:underline">→ ' + esc(c.post_slug) + '</a>' +
+                  '</div>' +
+                  '<time class="text-xs text-gray-500 font-mono">' + fmtDate(c.created_at) + '</time>' +
+                '</header>' +
+                '<p class="text-sm whitespace-pre-wrap mb-2 text-gray-800 dark:text-gray-200">' + esc(c.body) + '</p>' +
+                '<div class="text-xs text-gray-400 mb-3">IP: ' + esc(c.ip) + '</div>' +
+                '<div class="flex gap-2 text-xs">' +
+                  (c.status !== "approved" ? '<button data-act="approved" class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700">✓ 通过</button>' : '') +
+                  (c.status !== "rejected" ? '<button data-act="rejected" class="px-2 py-1 rounded bg-orange-600 text-white hover:bg-orange-700">✕ 拒绝</button>' : '') +
+                  (c.status !== "pending"  ? '<button data-act="pending"  class="px-2 py-1 rounded border">↶ 待审</button>' : '') +
+                  '<button data-act="delete" class="ml-auto px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-50">🗑 删除</button>' +
+                '</div>' +
+              '</article>'
+            );
+          }).join("");
+          // wire action buttons
+          list.querySelectorAll("button[data-act]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var article = btn.closest("[data-id]");
+              var id = article.getAttribute("data-id");
+              var act = btn.getAttribute("data-act");
+              if (act === "delete") {
+                if (!confirm("确认删除?不可恢复。")) return;
+                fetch("/api/admin/comments/" + id, {
+                  method: "DELETE",
+                  headers: { "X-Admin-Password": currentPw },
+                }).then(loadList);
+              } else {
+                fetch("/api/admin/comments/" + id, {
+                  method: "PATCH",
+                  headers: { "X-Admin-Password": currentPw, "content-type": "application/json" },
+                  body: JSON.stringify({ status: act }),
+                }).then(loadList);
+              }
+            });
+          });
+        })
+        .catch(function (e) {
+          if (e.message !== "401") {
+            list.innerHTML = '<p class="text-sm text-red-600">加载失败。</p>';
+          }
+        });
+    }
+
+    // Mark default filter
+    filterBtns.forEach(function (b) {
+      if (b.getAttribute("data-filter") === currentFilter) {
+        b.classList.add("bg-gray-900","dark:bg-white","text-white","dark:text-gray-900");
+      }
+    });
+
+    if (currentPw) tryLogin(currentPw); else showLogin();
+  })();
+</script>

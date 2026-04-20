@@ -1,0 +1,140 @@
+---
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+---
+<section id="comments" class="mt-12">
+  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+    <span>💬 留言</span>
+    <span class="text-sm text-gray-500 dark:text-gray-500 font-normal" id="comments-count"></span>
+  </h3>
+
+  <div id="comments-list" class="space-y-5 mb-8" data-slug={slug}>
+    <p class="text-sm text-gray-500 dark:text-gray-500 italic">加载中…</p>
+  </div>
+
+  <form id="comment-form" class="border-t border-stone-200 dark:border-gray-800 pt-6" data-slug={slug}>
+    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">发表留言</h4>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <input name="name" required maxlength="80" placeholder="姓名(必填)"
+        class="text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
+      <input name="email" type="email" maxlength="120" placeholder="邮箱(选填,不会公开)"
+        class="text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
+    </div>
+    <input name="website" maxlength="200" placeholder="网址(选填,以 http:// 开头)"
+      class="mt-3 w-full text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
+    <textarea name="body" required rows="4" maxlength="2000" placeholder="留言内容..."
+      class="mt-3 w-full text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none resize-y"></textarea>
+    <!-- honeypot -->
+    <input name="hp_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
+    <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-xs text-gray-500 dark:text-gray-500">留言需经审核后才会显示。</p>
+      <button type="submit"
+        class="text-sm px-4 py-2 rounded bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-opacity disabled:opacity-50">
+        提交留言
+      </button>
+    </div>
+    <p id="comment-status" class="mt-3 text-sm hidden"></p>
+  </form>
+</section>
+
+<script is:inline>
+  (function () {
+    var listEl = document.getElementById("comments-list");
+    var countEl = document.getElementById("comments-count");
+    var formEl = document.getElementById("comment-form");
+    var statusEl = document.getElementById("comment-status");
+    if (!listEl || !formEl) return;
+    var slug = listEl.getAttribute("data-slug") || "";
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+      });
+    }
+    function fmtDate(ts) {
+      try {
+        return new Date(ts).toLocaleString("zh-CN", {
+          year: "numeric", month: "short", day: "numeric",
+          hour: "2-digit", minute: "2-digit",
+        });
+      } catch { return ""; }
+    }
+    function nl2br(s) { return esc(s).replace(/\n/g, "<br>"); }
+
+    function render(comments) {
+      countEl.textContent = comments.length ? "(" + comments.length + ")" : "";
+      if (!comments.length) {
+        listEl.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-500 italic">还没有留言,来写第一条吧。</p>';
+        return;
+      }
+      listEl.innerHTML = comments.map(function (c) {
+        var nameHtml = c.website
+          ? '<a href="' + esc(c.website) + '" target="_blank" rel="nofollow noopener noreferrer" class="hover:underline">' + esc(c.name) + '</a>'
+          : esc(c.name);
+        return (
+          '<article class="rounded-lg bg-stone-100 dark:bg-gray-900 border border-stone-200 dark:border-gray-800 p-4">' +
+            '<header class="flex items-baseline justify-between gap-2 mb-2">' +
+              '<strong class="text-sm text-gray-900 dark:text-gray-100">' + nameHtml + '</strong>' +
+              '<time class="text-xs text-gray-500 dark:text-gray-500 font-mono">' + fmtDate(c.created_at) + '</time>' +
+            '</header>' +
+            '<p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">' + nl2br(c.body) + '</p>' +
+          '</article>'
+        );
+      }).join("");
+    }
+
+    function load() {
+      fetch("/api/comments?slug=" + encodeURIComponent(slug))
+        .then(function (r) { return r.json(); })
+        .then(function (data) { render(data.comments || []); })
+        .catch(function () {
+          listEl.innerHTML = '<p class="text-sm text-red-600">评论加载失败。</p>';
+        });
+    }
+    load();
+
+    formEl.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      statusEl.className = "mt-3 text-sm";
+      statusEl.textContent = "提交中...";
+      statusEl.classList.remove("hidden");
+
+      var fd = new FormData(formEl);
+      var payload = {
+        slug: slug,
+        name: fd.get("name") || "",
+        email: fd.get("email") || "",
+        website: fd.get("website") || "",
+        body: fd.get("body") || "",
+        hp_url: fd.get("hp_url") || "",
+      };
+      var btn = formEl.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      fetch("/api/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          btn.disabled = false;
+          if (res.ok && res.d.ok) {
+            statusEl.textContent = res.d.message || "已提交,等待审核。";
+            statusEl.className = "mt-3 text-sm text-green-700 dark:text-green-400";
+            formEl.reset();
+          } else {
+            statusEl.textContent = (res.d && res.d.error) || "提交失败,请稍后再试。";
+            statusEl.className = "mt-3 text-sm text-red-600 dark:text-red-400";
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          statusEl.textContent = "网络错误,请稍后再试。";
+          statusEl.className = "mt-3 text-sm text-red-600 dark:text-red-400";
+        });
+    });
+  })();
+</script>

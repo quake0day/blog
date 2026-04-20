@@ -1,0 +1,8 @@
+name = "quake0day-blog"
+compatibility_date = "2026-04-20"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "quake0day-blog-db"
+database_id = "f8cfe77c-0e08-44fa-98f4-d50349780f33"
