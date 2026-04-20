@@ -53,8 +53,9 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       :root {
         --bg:          #f8fbfd;   /* page bg: near-white, hint of sky */
         --bg-panel:    #ffffff;
-        --bg-sky:      #e1f1fa;   /* clearly-visible pale sky blue */
-        --bg-sky-soft: #f0f7fb;
+        --bg-sky:      #c9e4f3;   /* visible pale sky (was #e1f1fa — too close to white) */
+        --bg-sky-top:  #a7d1e8;   /* deeper blue for top of hero gradient */
+        --bg-sky-soft: #e6f3fa;
 
         --rule:        #d8e4ec;   /* hairline */
         --rule-soft:   #eaf0f5;
@@ -72,6 +73,7 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         --bg:          #0b1117;
         --bg-panel:    #141b23;
         --bg-sky:      #18324a;
+        --bg-sky-top:  #1f4566;
         --bg-sky-soft: #122536;
         --rule:        #253340;
         --rule-soft:   #1c2832;
@@ -166,8 +168,9 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       @media (min-width: 640px) {
         .prose-body { font-size: 18px; line-height: 1.9; }
       }
-      .prose-body > * + * { margin-top: 1.25em; }
-      .prose-body p { margin: 1.15em 0; }
+      .prose-body p { margin: 1.75em 0; }
+      .prose-body p:first-child { margin-top: 0; }
+      .prose-body p:last-child { margin-bottom: 0; }
 
       .prose-body h1, .prose-body h2, .prose-body h3, .prose-body h4 {
         font-family: "Noto Serif SC", Georgia, serif;
@@ -176,10 +179,10 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         text-align: left;
         letter-spacing: 0.015em;
       }
-      .prose-body h1 { font-size: 28px; font-weight: 700; margin: 2.2em 0 0.8em; }
-      .prose-body h2 { font-size: 24px; font-weight: 700; margin: 2em 0 0.7em; }
-      .prose-body h3 { font-size: 20px; font-weight: 600; margin: 1.8em 0 0.6em; }
-      .prose-body h4 { font-size: 18px; font-weight: 600; margin: 1.6em 0 0.5em; }
+      .prose-body h1 { font-size: 28px; font-weight: 700; margin: 2.6em 0 1em; }
+      .prose-body h2 { font-size: 24px; font-weight: 700; margin: 2.4em 0 0.9em; }
+      .prose-body h3 { font-size: 20px; font-weight: 600; margin: 2.1em 0 0.8em; }
+      .prose-body h4 { font-size: 18px; font-weight: 600; margin: 1.8em 0 0.7em; }
 
       .prose-body a {
         color: var(--accent-deep);
@@ -269,14 +272,16 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       /* ==========================================================
          Home-only tokens
          ========================================================== */
+      /* Actual-sky gradient: deeper blue at the top, fading down
+         to the page background. Vertical direction reads like the horizon. */
       .hero-panel {
-        background:
-          linear-gradient(
-            135deg,
-            var(--bg-sky) 0%,
-            var(--bg-sky-soft) 60%,
-            var(--bg-panel) 100%
-          );
+        background: linear-gradient(
+          180deg,
+          var(--bg-sky-top) 0%,
+          var(--bg-sky) 45%,
+          var(--bg-sky-soft) 80%,
+          var(--bg) 100%
+        );
       }
       .hero-title {
         font-family: "Noto Serif SC", Georgia, serif;
