@@ -56,9 +56,9 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       :root {
         --bg:          #f8fbfd;   /* page bg: near-white, hint of sky */
         --bg-panel:    #ffffff;
-        --bg-sky:      #c9e4f3;   /* visible pale sky (was #e1f1fa — too close to white) */
-        --bg-sky-top:  #a7d1e8;   /* deeper blue for top of hero gradient */
-        --bg-sky-soft: #e6f3fa;
+        --bg-sky:      #dbecf5;   /* softer pale sky */
+        --bg-sky-top:  #c2dcec;   /* top of hero gradient — visible but gentle */
+        --bg-sky-soft: #edf5fa;
 
         --rule:        #d8e4ec;   /* hairline */
         --rule-soft:   #eaf0f5;
@@ -102,7 +102,7 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         font-weight: 400;
         font-size: 16px;
         line-height: 1.75;
-        letter-spacing: 0.015em;
+        letter-spacing: 0;
         font-feature-settings: "kern" 1, "palt" 1, "tnum" 1;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
@@ -161,7 +161,7 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         font-size: 17px;
         line-height: 1.85;
         color: var(--ink);
-        letter-spacing: 0.02em;
+        letter-spacing: 0.005em;
         text-align: justify;
         text-align-last: left;
         text-justify: inter-character;
