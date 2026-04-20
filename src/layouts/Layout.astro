@@ -46,9 +46,12 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       rel="stylesheet"
     />
 
-    <style>
+    <style is:global>
       /* ==========================================================
          Color tokens — "黑白灰 + 壹" (grayscale + one sky-blue accent)
+         Kept global so utility classes defined here (hero-panel,
+         hero-title, eyebrow, chip-sky, prose-body, etc.) apply to
+         elements in child pages too.
          ========================================================== */
       :root {
         --bg:          #f8fbfd;   /* page bg: near-white, hint of sky */
