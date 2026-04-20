@@ -19,7 +19,7 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="author" content="Si Chen" />
-    <meta name="theme-color" content="#f4f8fb" />
+    <meta name="theme-color" content="#e1f1fa" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
@@ -33,164 +33,215 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       tailwind.config = { darkMode: "class" };
     </script>
 
-    <!-- Noto Sans SC (body) + Noto Serif SC (titles) + JetBrains Mono (numerics/code) -->
+    <!--
+      Font stack follows 蔡振原's guide:
+        primary  = Montserrat + PingFang SC
+        titles   = Noto Serif SC (for serif display contrast)
+        mono     = JetBrains Mono
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@600;700;900&display=swap"
       rel="stylesheet"
     />
 
     <style>
+      /* ==========================================================
+         Color tokens — "黑白灰 + 壹" (grayscale + one sky-blue accent)
+         ========================================================== */
       :root {
-        --bg:           #f7fafc;
-        --bg-panel:     #ffffff;
-        --bg-tint:      #e8f1f7;
-        --rule:         #dbe6ee;
-        --rule-soft:    #eaf0f5;
-        --ink:          #1a1d21;
-        --ink-soft:     #51585f;
-        --ink-faded:    #8a929b;
-        --accent:       #4a8db0;
-        --accent-hover: #316f91;
-        --accent-soft:  #d4e6f1;
+        --bg:          #f8fbfd;   /* page bg: near-white, hint of sky */
+        --bg-panel:    #ffffff;
+        --bg-sky:      #e1f1fa;   /* clearly-visible pale sky blue */
+        --bg-sky-soft: #f0f7fb;
+
+        --rule:        #d8e4ec;   /* hairline */
+        --rule-soft:   #eaf0f5;
+
+        --ink:         #0f1720;   /* near-black, slightly cool */
+        --ink-soft:    #4a5568;
+        --ink-faded:   #8290a0;
+
+        --accent:      #3a9ad9;   /* the one accent — sky blue */
+        --accent-hover:#2080bb;
+        --accent-deep: #1769a3;
+        --accent-pale: #c9e4f3;
       }
       .dark {
-        --bg:           #0f1419;
-        --bg-panel:     #151b21;
-        --bg-tint:      #182430;
-        --rule:         #263038;
-        --rule-soft:    #1c242c;
-        --ink:          #e8ecef;
-        --ink-soft:     #a8b0b8;
-        --ink-faded:    #6a727a;
-        --accent:       #7cbadc;
-        --accent-hover: #9cd0ea;
-        --accent-soft:  #1a2a38;
+        --bg:          #0b1117;
+        --bg-panel:    #141b23;
+        --bg-sky:      #18324a;
+        --bg-sky-soft: #122536;
+        --rule:        #253340;
+        --rule-soft:   #1c2832;
+        --ink:         #e8eef3;
+        --ink-soft:    #a2adb9;
+        --ink-faded:   #6a7684;
+        --accent:      #62b8e6;
+        --accent-hover:#8fd0ee;
+        --accent-deep: #3a9ad9;
+        --accent-pale: #1c3a52;
       }
 
-      html, body {
-        background: var(--bg);
-        color: var(--ink);
-      }
+      html, body { background: var(--bg); color: var(--ink); }
+
+      /* ==========================================================
+         Typography — Montserrat + PingFang SC, with CJK spacing
+         ========================================================== */
       body {
         font-family:
-          "Noto Sans SC", -apple-system, BlinkMacSystemFont,
-          "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+          "Montserrat",
+          "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          -apple-system, BlinkMacSystemFont, sans-serif;
         font-weight: 400;
-        font-size: 16.5px;
-        line-height: 1.78;
-        letter-spacing: 0.005em;
+        font-size: 16px;
+        line-height: 1.75;
+        letter-spacing: 0.015em;
+        font-feature-settings: "kern" 1, "palt" 1, "tnum" 1;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        /* Auto spacing between CJK and Latin/digits (Chrome 123+) */
+        text-spacing-trim: auto;
       }
 
-      /* Serif family for display type */
       .font-serif-sc {
         font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
       }
-
-      /* Editorial section label */
-      .eyebrow {
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--accent);
+      .font-mono {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
       }
 
-      /* Hairline accent rules */
+      /* ==========================================================
+         Section label (small caps eyebrow)
+         ========================================================== */
+      .eyebrow {
+        font-family: "Montserrat", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--accent-deep);
+      }
+      .dark .eyebrow { color: var(--accent); }
+
+      /* Decorative hairline rule */
       .rule-accent {
         display: inline-block;
         width: 2.5rem;
         height: 2px;
         background: var(--accent);
-      }
-      .rule-soft {
-        border-color: var(--rule);
+        border-radius: 2px;
       }
 
-      /* Link tokens */
+      /* ==========================================================
+         Links
+         ========================================================== */
       a { color: inherit; }
       .link-accent {
-        color: var(--accent);
+        color: var(--accent-deep);
         text-decoration: none;
         transition: color 0.15s;
       }
+      .dark .link-accent { color: var(--accent); }
       .link-accent:hover { color: var(--accent-hover); }
 
-      /* ==== Prose body (post detail) ==== */
+      /* ==========================================================
+         Prose body (post detail)
+         Body at 18px / line-height 1.85, justified per 蔡振原 guide.
+         Chinese line-height absolute > English at same size.
+         ========================================================== */
       .prose-body {
-        font-size: 1.0625rem;
+        font-size: 17px;
         line-height: 1.85;
         color: var(--ink);
-        letter-spacing: 0.01em;
+        letter-spacing: 0.02em;
+        text-align: justify;
+        text-align-last: left;
+        text-justify: inter-character;
+        hanging-punctuation: first allow-end last;
+        word-wrap: break-word;
       }
       @media (min-width: 640px) {
-        .prose-body { font-size: 1.125rem; line-height: 1.9; }
+        .prose-body { font-size: 18px; line-height: 1.9; }
       }
       .prose-body > * + * { margin-top: 1.25em; }
-      .prose-body p { margin: 1.2em 0; }
+      .prose-body p { margin: 1.15em 0; }
+
       .prose-body h1, .prose-body h2, .prose-body h3, .prose-body h4 {
         font-family: "Noto Serif SC", Georgia, serif;
         color: var(--ink);
         line-height: 1.4;
+        text-align: left;
+        letter-spacing: 0.015em;
       }
-      .prose-body h1 { font-size: 1.7em; font-weight: 700; margin: 2.2em 0 0.8em; }
-      .prose-body h2 { font-size: 1.4em; font-weight: 700; margin: 2em 0 0.7em; }
-      .prose-body h3 { font-size: 1.2em; font-weight: 600; margin: 1.8em 0 0.6em; }
-      .prose-body h4 { font-size: 1.08em; font-weight: 600; margin: 1.6em 0 0.5em; }
+      .prose-body h1 { font-size: 28px; font-weight: 700; margin: 2.2em 0 0.8em; }
+      .prose-body h2 { font-size: 24px; font-weight: 700; margin: 2em 0 0.7em; }
+      .prose-body h3 { font-size: 20px; font-weight: 600; margin: 1.8em 0 0.6em; }
+      .prose-body h4 { font-size: 18px; font-weight: 600; margin: 1.6em 0 0.5em; }
+
       .prose-body a {
-        color: var(--accent);
+        color: var(--accent-deep);
         text-decoration: underline;
         text-decoration-thickness: 0.5px;
         text-underline-offset: 3px;
-        text-decoration-color: var(--accent-soft);
+        text-decoration-color: var(--accent-pale);
         transition: color 0.15s, text-decoration-color 0.15s;
       }
-      .prose-body a:hover { color: var(--accent-hover); text-decoration-color: currentColor; }
+      .dark .prose-body a { color: var(--accent); }
+      .prose-body a:hover {
+        color: var(--accent-hover);
+        text-decoration-color: currentColor;
+      }
       .prose-body strong { color: var(--ink); font-weight: 700; }
       .prose-body em { font-style: italic; color: var(--ink-soft); }
+
       .prose-body img {
         max-width: 100%;
         height: auto;
         margin: 1.8em auto;
         display: block;
         border-radius: 2px;
-        box-shadow: 0 1px 3px rgba(30,60,90,0.08), 0 10px 40px rgba(30,60,90,0.08);
+        box-shadow: 0 1px 3px rgba(20,40,70,0.08), 0 10px 40px rgba(20,40,70,0.08);
       }
-      .dark .prose-body img { box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 10px 40px rgba(0,0,0,0.35); }
+      .dark .prose-body img { box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 10px 40px rgba(0,0,0,0.35); }
+
       .prose-body blockquote {
         border-left: 3px solid var(--accent);
         padding: 0.4em 0 0.4em 1.25em;
         margin: 1.8em 0;
         color: var(--ink-soft);
         font-style: italic;
-        background: linear-gradient(to right, var(--accent-soft), transparent 60%);
+        background: linear-gradient(to right, var(--accent-pale), transparent 55%);
+        text-align: left;
       }
-      .prose-body ul, .prose-body ol { padding-left: 1.6em; margin: 1.2em 0; }
-      .prose-body ul { list-style-type: "· "; }
-      .prose-body li { margin: 0.3em 0; padding-left: 0.25em; }
+
+      .prose-body ul, .prose-body ol { padding-left: 1.5em; margin: 1.2em 0; text-align: left; }
+      .prose-body li { margin: 0.35em 0; }
+
       .prose-body code {
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 0.88em;
-        padding: 0.12em 0.45em;
-        background: var(--bg-tint);
+        padding: 0.15em 0.45em;
+        background: var(--bg-sky-soft);
         border-radius: 3px;
-        color: var(--accent-hover);
+        color: var(--accent-deep);
       }
+      .dark .prose-body code { color: var(--accent); }
       .prose-body pre {
-        padding: 1.2em 1.4em;
+        padding: 1.15em 1.35em;
         border-radius: 4px;
         overflow-x: auto;
         margin: 1.8em 0;
-        font-size: 0.92em;
+        font-size: 14px;
         line-height: 1.7;
-        background: #0f1520 !important;
+        background: #0d141d !important;
         border: 1px solid var(--rule);
+        text-align: left;
       }
       .prose-body pre code { background: transparent; padding: 0; color: #d8dfe8; }
+
       .prose-body hr {
         border: 0;
         text-align: center;
@@ -202,72 +253,82 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         letter-spacing: 0.6em;
         font-size: 1.2em;
       }
+
       .prose-body table {
         border-collapse: collapse;
         margin: 1.8em 0;
-        font-size: 0.95em;
+        font-size: 15px;
       }
       .prose-body th, .prose-body td {
         border: 1px solid var(--rule);
         padding: 0.6em 0.95em;
+        text-align: left;
       }
-      .prose-body th { background: var(--bg-tint); font-weight: 600; }
+      .prose-body th { background: var(--bg-sky-soft); font-weight: 600; }
 
-      /* ==== Homepage hero ==== */
-      .hero-bg {
+      /* ==========================================================
+         Home-only tokens
+         ========================================================== */
+      .hero-panel {
         background:
-          radial-gradient(ellipse at 30% 0%, var(--accent-soft), transparent 60%),
-          radial-gradient(ellipse at 80% 100%, var(--bg-tint), transparent 55%);
+          linear-gradient(
+            135deg,
+            var(--bg-sky) 0%,
+            var(--bg-sky-soft) 60%,
+            var(--bg-panel) 100%
+          );
       }
       .hero-title {
         font-family: "Noto Serif SC", Georgia, serif;
         font-weight: 900;
-        letter-spacing: -0.015em;
+        letter-spacing: -0.01em;
         line-height: 0.95;
       }
 
-      /* ==== Home post entry ==== */
       .home-post-title {
         font-family: "Noto Serif SC", Georgia, serif;
         font-weight: 700;
         line-height: 1.3;
-        letter-spacing: -0.005em;
+        letter-spacing: 0.005em;
         color: var(--ink);
-        transition: color 0.2s;
       }
       .home-post-title a:hover { color: var(--accent-hover); }
       .home-post-date {
         font-family: "JetBrains Mono", ui-monospace, monospace;
-        font-size: 0.78rem;
+        font-size: 12px;
         font-weight: 500;
-        letter-spacing: 0.06em;
-        color: var(--accent);
-      }
-      .home-post-tag {
-        font-size: 0.72rem;
         letter-spacing: 0.08em;
+        color: var(--accent-deep);
+      }
+      .dark .home-post-date { color: var(--accent); }
+      .home-post-tag {
+        font-size: 12px;
+        letter-spacing: 0.06em;
         font-weight: 500;
         color: var(--ink-faded);
       }
+
+      /* Subtle divider between posts on home */
       .home-divider {
         height: 1px;
         background: linear-gradient(
           to right,
           transparent,
-          var(--rule) 20%,
-          var(--rule) 80%,
+          var(--rule) 15%,
+          var(--rule) 85%,
           transparent
         );
       }
 
-      /* Comments */
+      /* ==========================================================
+         Comments
+         ========================================================== */
       .comment-card {
         background: var(--bg-panel);
         border: 1px solid var(--rule);
       }
-      .dark .comment-card { background: var(--bg-tint); }
+      .dark .comment-card { background: var(--bg-sky-soft); }
 
-      /* Form inputs */
       .paper-input {
         background: var(--bg-panel);
         border: 1px solid var(--rule);
@@ -277,21 +338,39 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       .paper-input:focus {
         outline: none;
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
+        box-shadow: 0 0 0 3px var(--accent-pale);
       }
+      .dark .paper-input { background: var(--bg-panel); }
+
       .paper-btn {
         background: var(--accent);
-        color: white;
+        color: #fff;
         transition: background 0.15s;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
       }
       .paper-btn:hover { background: var(--accent-hover); }
 
-      /* Scroll anchor offset */
+      /* Sky accent chip used on home date, etc. */
+      .chip-sky {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4em;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--bg-sky);
+        color: var(--accent-deep);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+      }
+      .dark .chip-sky { color: var(--accent); }
+
+      /* Scroll offset */
       [id] { scroll-margin-top: 80px; }
 
       /* Selection */
-      ::selection { background: var(--accent-soft); color: var(--ink); }
+      ::selection { background: var(--accent-pale); color: var(--ink); }
     </style>
   </head>
 
@@ -300,11 +379,11 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       <div class="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between">
         <a href="/" class="text-[1.4rem] font-bold tracking-tight font-serif-sc" style="color: var(--ink);">PSYcHiC</a>
         <div class="flex items-center gap-0.5 sm:gap-1 text-sm" style="color: var(--ink-soft);">
-          <a href="/" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent)] transition-colors">Home</a>
-          <a href="/archive" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent)] transition-colors">Archive</a>
-          <a href="/tags" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent)] transition-colors">Tags</a>
-          <a href="/about" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent)] transition-colors">About</a>
-          <a href="/rss.xml" title="RSS" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent)] transition-colors">RSS</a>
+          <a href="/" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Home</a>
+          <a href="/archive" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Archive</a>
+          <a href="/tags" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Tags</a>
+          <a href="/about" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">About</a>
+          <a href="/rss.xml" title="RSS" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">RSS</a>
           <button id="theme-toggle" class="ml-1 p-1.5 rounded-full hover:opacity-70 transition-opacity" aria-label="Toggle dark mode">
             <svg class="w-4 h-4 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
             <svg class="w-4 h-4 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
@@ -313,20 +392,18 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       </div>
     </nav>
 
-    <main class="max-w-3xl mx-auto px-5 sm:px-8 py-12 sm:py-20">
+    <main>
       <slot />
     </main>
 
     <footer class="mt-28 py-12" style="border-top: 1px solid var(--rule);">
       <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center text-xs" style="color: var(--ink-faded);">
-        <div class="mb-3 flex justify-center">
-          <span class="rule-accent"></span>
-        </div>
+        <div class="mb-3 flex justify-center"><span class="rule-accent"></span></div>
         &copy; 2004&ndash;{new Date().getFullYear()} &nbsp; Si Chen
-        &nbsp;·&nbsp;
+        &nbsp;&middot;&nbsp;
         Built with <a href="https://astro.build" class="link-accent">Astro</a>,
         hosted on Cloudflare Pages
-        &nbsp;·&nbsp;
+        &nbsp;&middot;&nbsp;
         <a href="/rss.xml" class="link-accent">RSS</a>
       </div>
     </footer>

@@ -11,26 +11,32 @@ const tags = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
 const maxN = Math.max(1, ...tags.map(([, n]) => n));
 ---
 <Layout title="Tags" description="All tags on PSYcHiC">
-  <header class="mb-16">
-    <div class="eyebrow mb-3">标签</div>
-    <h1 class="font-serif-sc text-4xl sm:text-5xl font-bold tracking-tight mb-4" style="color: var(--ink);">Tags</h1>
-    <div class="flex items-center gap-4">
-      <span class="rule-accent"></span>
-      <span class="text-sm" style="color: var(--ink-soft);">{tags.length} 个标签 · {posts.length} 篇文章</span>
-    </div>
-  </header>
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <header class="mb-16">
+      <div class="eyebrow mb-4">Tags &middot; 标签</div>
+      <h1 class="font-serif-sc text-[44px] sm:text-[56px] font-black tracking-tight mb-4" style="color: var(--ink);">
+        标签索引
+      </h1>
+      <div class="flex items-center gap-4">
+        <span class="rule-accent"></span>
+        <span class="text-sm" style="color: var(--ink-soft);">
+          {tags.length} 个标签 &middot; 覆盖 {posts.length} 篇
+        </span>
+      </div>
+    </header>
 
-  <div class="flex flex-wrap gap-x-5 gap-y-3 items-baseline">
-    {tags.map(([t, n]) => {
-      const scale = 0.92 + (n / maxN) * 0.95;
-      return (
-        <a href={`/tagged/${encodeURIComponent(t)}`}
-          class="link-accent inline-flex items-baseline gap-1 hover:opacity-80 transition-opacity"
-          style={`font-size: ${scale}rem;`}>
-          <span>#{t}</span>
-          <span class="text-xs font-mono" style="color: var(--ink-faded);">{n}</span>
-        </a>
-      );
-    })}
+    <div class="flex flex-wrap gap-x-5 gap-y-4 items-baseline">
+      {tags.map(([t, n]) => {
+        const scale = 0.9 + (n / maxN) * 0.9;
+        return (
+          <a href={`/tagged/${encodeURIComponent(t)}`}
+            class="link-accent inline-flex items-baseline gap-1 hover:opacity-80 transition-opacity"
+            style={`font-size: ${scale}rem;`}>
+            <span>#{t}</span>
+            <span class="text-xs font-mono" style="color: var(--ink-faded);">{n}</span>
+          </a>
+        );
+      })}
+    </div>
   </div>
 </Layout>

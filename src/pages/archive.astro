@@ -16,43 +16,53 @@ const years = Array.from(byYear.keys()).sort((a, b) => b - a);
 const mdFmt = (d: Date) => {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${m}/${day}`;
+  return `${m} / ${day}`;
 };
 ---
 <Layout title="Archive" description={`All ${posts.length} posts`}>
-  <header class="mb-16">
-    <div class="eyebrow mb-3">存档</div>
-    <h1 class="font-serif-sc text-4xl sm:text-5xl font-bold tracking-tight mb-4" style="color: var(--ink);">Archive</h1>
-    <div class="flex items-center gap-4">
-      <span class="rule-accent"></span>
-      <span class="text-sm" style="color: var(--ink-soft);">{posts.length} 篇 · 始于 2004</span>
-    </div>
-  </header>
-
-  {years.map((year) => (
-    <section class="mb-14">
-      <div class="flex items-baseline gap-4 mb-6">
-        <h2 class="font-serif-sc text-2xl font-bold" style="color: var(--accent);">{year}</h2>
-        <div class="flex-1 h-px" style="background: var(--rule);"></div>
-        <span class="text-xs font-mono" style="color: var(--ink-faded);">{byYear.get(year)!.length} 篇</span>
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <header class="mb-16">
+      <div class="eyebrow mb-4">Archive &middot; 存档</div>
+      <h1 class="font-serif-sc text-[44px] sm:text-[56px] font-black tracking-tight mb-4" style="color: var(--ink);">
+        所有文章
+      </h1>
+      <div class="flex items-center gap-4">
+        <span class="rule-accent"></span>
+        <span class="text-sm" style="color: var(--ink-soft);">
+          共 {posts.length} 篇 &middot; 始于 2004
+        </span>
       </div>
-      <ul class="space-y-3">
-        {byYear.get(year)!.map((p) => (
-          <li class="flex items-baseline gap-5 flex-wrap">
-            <time class="text-xs font-mono min-w-[3rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
-              {mdFmt(p.data.date)}
-            </time>
-            <a href={`/post/${p.slug}`} class="text-base hover:text-[color:var(--accent)] transition-colors" style="color: var(--ink);">
-              {p.data.title}
-            </a>
-            {p.data.tags.length > 0 && (
-              <span class="text-xs" style="color: var(--ink-faded); letter-spacing: 0.05em;">
-                {p.data.tags.slice(0, 2).map((t) => `#${t}`).join(" ")}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
-  ))}
+    </header>
+
+    {years.map((year) => (
+      <section class="mb-14">
+        <div class="flex items-baseline gap-4 mb-6">
+          <h2 class="font-serif-sc text-2xl font-bold" style="color: var(--accent-deep);">
+            {year}
+          </h2>
+          <div class="flex-1 h-px" style="background: var(--rule);"></div>
+          <span class="text-xs font-mono" style="color: var(--ink-faded);">
+            {byYear.get(year)!.length} 篇
+          </span>
+        </div>
+        <ul class="space-y-3">
+          {byYear.get(year)!.map((p) => (
+            <li class="flex items-baseline gap-5 flex-wrap">
+              <time class="text-xs font-mono min-w-[4rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
+                {mdFmt(p.data.date)}
+              </time>
+              <a href={`/post/${p.slug}`} class="text-[15px] hover:text-[color:var(--accent-hover)] transition-colors" style="color: var(--ink);">
+                {p.data.title}
+              </a>
+              {p.data.tags.length > 0 && (
+                <span class="text-xs" style="color: var(--ink-faded); letter-spacing: 0.05em;">
+                  {p.data.tags.slice(0, 2).map((t) => `#${t}`).join("  ")}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
 </Layout>

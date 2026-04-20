@@ -12,7 +12,7 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 
 const { page } = Astro.props;
 
-function fmtDate(d: Date) {
+function fmt(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -32,82 +32,84 @@ function excerpt(raw: string | undefined, max = 180): string {
 ---
 <Layout>
   {page.currentPage === 1 && (
-    <header class="hero-bg -mx-5 sm:-mx-8 px-5 sm:px-8 -mt-12 sm:-mt-20 mb-20 pt-20 sm:pt-28 pb-16 sm:pb-20">
-      <div class="max-w-2xl">
-        <div class="eyebrow mb-4">A Personal Journal · since 2004</div>
-        <h1 class="hero-title text-6xl sm:text-7xl md:text-8xl" style="color: var(--ink);">
+    <section class="hero-panel border-b" style="border-color: var(--rule);">
+      <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20">
+        <div class="eyebrow mb-6">A Personal Journal &middot; Since 2004</div>
+        <h1 class="hero-title text-[56px] sm:text-[80px] md:text-[96px]" style="color: var(--ink);">
           PSYcHiC
         </h1>
         <div class="mt-8 flex items-center gap-4">
           <span class="rule-accent"></span>
           <span class="text-sm" style="color: var(--ink-soft);">
-            思绪 · 日记 · 技术 · 研究
+            思绪 &middot; 日记 &middot; 技术 &middot; 研究
           </span>
         </div>
+        <p class="mt-6 max-w-md text-sm leading-relaxed" style="color: var(--ink-soft);">
+          Si Chen 的个人博客。断断续续写了 20 年,119 篇日志,从高中到现在。
+        </p>
       </div>
-    </header>
+    </section>
   )}
 
-  {page.currentPage > 1 && (
-    <header class="mb-12">
-      <div class="eyebrow mb-3">Page {page.currentPage}</div>
-      <div class="flex items-center gap-3"><span class="rule-accent"></span></div>
-    </header>
-  )}
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    {page.currentPage > 1 && (
+      <header class="mb-16">
+        <div class="eyebrow mb-3">Page {String(page.currentPage).padStart(2, "0")}</div>
+        <div><span class="rule-accent"></span></div>
+      </header>
+    )}
 
-  <ul>
-    {page.data.map((p, idx) => {
-      const { y, m, day } = fmtDate(p.data.date);
-      return (
-        <li>
-          {idx > 0 && <div class="home-divider my-24"></div>}
-          <article class="group">
-            <div class="flex items-center gap-3 mb-4 flex-wrap">
-              <span class="home-post-date">{y} &middot; {m} &middot; {day}</span>
-              {p.data.tags.slice(0, 3).length > 0 && (
-                <>
-                  <span style="color: var(--ink-faded);" class="text-xs">—</span>
-                  {p.data.tags.slice(0, 3).map((t: string) => (
-                    <a href={`/tagged/${encodeURIComponent(t)}`} class="home-post-tag link-accent">#{t}</a>
-                  ))}
-                </>
-              )}
-            </div>
-            <h2 class="home-post-title text-3xl sm:text-[2.5rem] mb-5">
-              <a href={`/post/${p.slug}`}>{p.data.title}</a>
-            </h2>
-            <p class="text-base sm:text-[1.0625rem] leading-relaxed mb-6" style="color: var(--ink-soft);">
-              {excerpt(p.body)}
-            </p>
-            <a href={`/post/${p.slug}`} class="link-accent inline-flex items-center gap-1 text-sm font-medium">
-              继续阅读
-              <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
-            </a>
-          </article>
-        </li>
-      );
-    })}
-  </ul>
+    <ul>
+      {page.data.map((p, idx) => {
+        const { y, m, day } = fmt(p.data.date);
+        return (
+          <li>
+            {idx > 0 && <div class="home-divider my-28"></div>}
+            <article class="group">
+              <div class="flex items-center gap-3 mb-5 flex-wrap">
+                <span class="chip-sky">{y}·{m}·{day}</span>
+                {p.data.tags.slice(0, 3).map((t: string) => (
+                  <a href={`/tagged/${encodeURIComponent(t)}`} class="home-post-tag link-accent">
+                    #{t}
+                  </a>
+                ))}
+              </div>
+              <h2 class="home-post-title text-[28px] sm:text-[40px] mb-5">
+                <a href={`/post/${p.slug}`} class="transition-colors">{p.data.title}</a>
+              </h2>
+              <p class="text-[15px] sm:text-base leading-relaxed mb-6" style="color: var(--ink-soft); text-align: justify; text-align-last: left;">
+                {excerpt(p.body)}
+              </p>
+              <a href={`/post/${p.slug}`} class="link-accent inline-flex items-center gap-1.5 text-sm font-medium">
+                继续阅读
+                <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+              </a>
+            </article>
+          </li>
+        );
+      })}
+    </ul>
 
-  <nav class="mt-24 pt-10 flex items-center justify-between text-sm" style="border-top: 1px solid var(--rule);">
-    <div>
-      {page.url.prev && (
-        <a href={page.url.prev} class="link-accent inline-flex items-center gap-1">
-          <span>←</span> 较新
-        </a>
-      )}
-    </div>
-    <div class="text-xs font-mono" style="color: var(--ink-faded); letter-spacing: 0.08em;">
-      {String(page.currentPage).padStart(2, "0")} / {String(page.lastPage).padStart(2, "0")}
-      &nbsp;&middot;&nbsp;
-      {page.total} posts
-    </div>
-    <div>
-      {page.url.next && (
-        <a href={page.url.next} class="link-accent inline-flex items-center gap-1">
-          较旧 <span>→</span>
-        </a>
-      )}
-    </div>
-  </nav>
+    <nav class="mt-28 pt-10 flex items-center justify-between text-sm" style="border-top: 1px solid var(--rule);">
+      <div>
+        {page.url.prev && (
+          <a href={page.url.prev} class="link-accent inline-flex items-center gap-1.5">
+            <span>←</span> 较新
+          </a>
+        )}
+      </div>
+      <div class="text-xs font-mono" style="color: var(--ink-faded); letter-spacing: 0.08em;">
+        {String(page.currentPage).padStart(2, "0")} / {String(page.lastPage).padStart(2, "0")}
+        &nbsp;&middot;&nbsp;
+        {page.total} posts
+      </div>
+      <div>
+        {page.url.next && (
+          <a href={page.url.next} class="link-accent inline-flex items-center gap-1.5">
+            较旧 <span>→</span>
+          </a>
+        )}
+      </div>
+    </nav>
+  </div>
 </Layout>

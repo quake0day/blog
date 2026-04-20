@@ -18,43 +18,37 @@ const d = entry.data.date;
 const y = d.getFullYear();
 const m = String(d.getMonth() + 1).padStart(2, "0");
 const day = String(d.getDate()).padStart(2, "0");
-const dateDisplay = `${y} · ${m} · ${day}`;
 ---
 <Layout title={entry.data.title} description={entry.data.title} ogType="article">
-  <article>
-    <header class="mb-12 pb-8" style="border-bottom: 1px solid var(--rule);">
-      <div class="eyebrow mb-5">日 &nbsp;&middot;&nbsp; 志</div>
-      <h1 class="font-serif-sc text-3xl sm:text-[2.5rem] md:text-[2.75rem] font-bold leading-tight tracking-tight mb-6" style="color: var(--ink);">
-        {entry.data.title}
-      </h1>
-      <div class="flex items-center gap-4 flex-wrap">
-        <time datetime={entry.data.date.toISOString()} class="home-post-date">{dateDisplay}</time>
-        {entry.data.tags.length > 0 && (
-          <>
-            <span style="color: var(--ink-faded);" class="text-xs">—</span>
-            <div class="flex flex-wrap gap-3">
-              {entry.data.tags.map((t: string) => (
-                <a href={`/tagged/${encodeURIComponent(t)}`} class="home-post-tag link-accent">#{t}</a>
-              ))}
-            </div>
-          </>
-        )}
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <article>
+      <header class="mb-14 pb-10" style="border-bottom: 1px solid var(--rule);">
+        <div class="eyebrow mb-6">日 &middot; 志</div>
+        <h1 class="font-serif-sc text-[30px] sm:text-[44px] font-bold leading-[1.25] tracking-tight mb-7" style="color: var(--ink);">
+          {entry.data.title}
+        </h1>
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="chip-sky">{y}·{m}·{day}</span>
+          {entry.data.tags.map((t: string) => (
+            <a href={`/tagged/${encodeURIComponent(t)}`} class="home-post-tag link-accent">#{t}</a>
+          ))}
+        </div>
+      </header>
+
+      <div class="prose-body">
+        <Content />
       </div>
-    </header>
+    </article>
 
-    <div class="prose-body">
-      <Content />
+    <div class="my-20 flex justify-center">
+      <span class="rule-accent"></span>
     </div>
-  </article>
 
-  <div class="my-20 flex justify-center">
-    <span class="rule-accent"></span>
-  </div>
+    <Comments slug={entry.slug} />
 
-  <Comments slug={entry.slug} />
-
-  <div class="mt-20 pt-8 flex justify-between text-sm" style="border-top: 1px solid var(--rule); color: var(--ink-faded);">
-    <a href="/" class="link-accent inline-flex items-center gap-1"><span>←</span> 首页</a>
-    <a href="/archive" class="link-accent inline-flex items-center gap-1">所有文章 <span>→</span></a>
+    <div class="mt-20 pt-8 flex justify-between text-sm" style="border-top: 1px solid var(--rule); color: var(--ink-faded);">
+      <a href="/" class="link-accent inline-flex items-center gap-1.5"><span>←</span> 首页</a>
+      <a href="/archive" class="link-accent inline-flex items-center gap-1.5">所有文章 <span>→</span></a>
+    </div>
   </div>
 </Layout>

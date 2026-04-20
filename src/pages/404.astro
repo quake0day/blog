@@ -2,12 +2,10 @@
 import Layout from "../layouts/Layout.astro";
 ---
 <Layout title="404" description="Page not found">
-  <div class="text-center py-24">
-    <p class="font-serif-sc font-black text-8xl sm:text-9xl" style="color: var(--accent);">404</p>
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-28 sm:py-36 text-center">
+    <p class="font-serif-sc font-black text-[96px] sm:text-[144px] leading-none" style="color: var(--accent);">404</p>
     <div class="my-8 flex justify-center"><span class="rule-accent"></span></div>
     <p class="text-lg" style="color: var(--ink-soft);">这里空无一物 &nbsp;/&nbsp; Nothing here.</p>
-    <a href="/" class="inline-flex items-center gap-1 mt-10 link-accent">
-      <span>←</span> 回到首页
-    </a>
+    <a href="/" class="inline-flex items-center gap-1.5 mt-10 link-accent"><span>←</span> 回到首页</a>
   </div>
 </Layout>
