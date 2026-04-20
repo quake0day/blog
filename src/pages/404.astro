@@ -3,11 +3,11 @@ import Layout from "../layouts/Layout.astro";
 ---
 <Layout title="404" description="Page not found">
   <div class="text-center py-24">
-    <p class="text-7xl font-bold font-mono" style="color: var(--ink);">404</p>
-    <div class="my-5" style="color: var(--ink-faded); letter-spacing: 0.5em;">· · ·</div>
+    <p class="font-serif-sc font-black text-8xl sm:text-9xl" style="color: var(--accent);">404</p>
+    <div class="my-8 flex justify-center"><span class="rule-accent"></span></div>
     <p class="text-lg" style="color: var(--ink-soft);">这里空无一物 &nbsp;/&nbsp; Nothing here.</p>
-    <a href="/" class="inline-block mt-10 link-accent" style="text-decoration: none;">
-      ← 回到首页
+    <a href="/" class="inline-flex items-center gap-1 mt-10 link-accent">
+      <span>←</span> 回到首页
     </a>
   </div>
 </Layout>

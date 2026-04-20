@@ -22,30 +22,37 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 const { tag, posts } = Astro.props;
-const fmt = (d: Date) =>
-  d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+const fmtYMD = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}/${m}/${day}`;
+};
 ---
 <Layout title={`Tagged: ${tag}`} description={`Posts tagged ${tag}`}>
-  <header class="mb-10 text-center">
+  <header class="mb-16">
     <div class="eyebrow mb-3">标签</div>
-    <h1 class="text-3xl font-bold tracking-tight" style="color: var(--ink);">#{tag}</h1>
-    <p class="text-sm mt-2" style="color: var(--ink-faded);">{posts.length} 篇</p>
+    <h1 class="font-serif-sc text-4xl sm:text-5xl font-bold tracking-tight mb-4" style="color: var(--ink);">#{tag}</h1>
+    <div class="flex items-center gap-4">
+      <span class="rule-accent"></span>
+      <span class="text-sm" style="color: var(--ink-soft);">{posts.length} 篇</span>
+    </div>
   </header>
 
-  <ul class="space-y-3">
+  <ul class="space-y-4">
     {posts.map((p) => (
-      <li class="flex items-baseline gap-4 flex-wrap">
+      <li class="flex items-baseline gap-5 flex-wrap">
         <time class="text-xs font-mono min-w-[6rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
-          {fmt(p.data.date)}
+          {fmtYMD(p.data.date)}
         </time>
-        <a href={`/post/${p.slug}`} class="text-base hover:text-[var(--ink-accent)] transition-colors" style="color: var(--ink);">
+        <a href={`/post/${p.slug}`} class="text-base hover:text-[color:var(--accent)] transition-colors" style="color: var(--ink);">
           {p.data.title}
         </a>
       </li>
     ))}
   </ul>
 
-  <div class="mt-12 text-sm text-center">
-    <a href="/tags" class="link-accent" style="text-decoration: none;">← 所有标签</a>
+  <div class="mt-16 text-sm">
+    <a href="/tags" class="link-accent inline-flex items-center gap-1"><span>←</span> 所有标签</a>
   </div>
 </Layout>

@@ -5,7 +5,6 @@ import Layout from "../layouts/Layout.astro";
 const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
-
 const byYear = new Map<number, typeof posts>();
 for (const p of posts) {
   const y = p.data.date.getFullYear();
@@ -14,32 +13,40 @@ for (const p of posts) {
 }
 const years = Array.from(byYear.keys()).sort((a, b) => b - a);
 
-const fmtMD = (d: Date) =>
-  d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+const mdFmt = (d: Date) => {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${m}/${day}`;
+};
 ---
 <Layout title="Archive" description={`All ${posts.length} posts`}>
-  <header class="mb-10 text-center">
-    <div class="eyebrow mb-3">所有日志</div>
-    <h1 class="text-3xl font-bold tracking-tight" style="color: var(--ink);">Archive</h1>
-    <p class="text-sm mt-2" style="color: var(--ink-faded);">{posts.length} 篇 &nbsp;·&nbsp; since 2004</p>
+  <header class="mb-16">
+    <div class="eyebrow mb-3">存档</div>
+    <h1 class="font-serif-sc text-4xl sm:text-5xl font-bold tracking-tight mb-4" style="color: var(--ink);">Archive</h1>
+    <div class="flex items-center gap-4">
+      <span class="rule-accent"></span>
+      <span class="text-sm" style="color: var(--ink-soft);">{posts.length} 篇 · 始于 2004</span>
+    </div>
   </header>
 
   {years.map((year) => (
-    <section class="mb-12">
-      <h2 class="text-sm font-bold mb-4 pb-2 border-b paper-rule tracking-[0.18em]" style="color: var(--ink-soft);">
-        {year}
-      </h2>
-      <ul class="space-y-2.5">
+    <section class="mb-14">
+      <div class="flex items-baseline gap-4 mb-6">
+        <h2 class="font-serif-sc text-2xl font-bold" style="color: var(--accent);">{year}</h2>
+        <div class="flex-1 h-px" style="background: var(--rule);"></div>
+        <span class="text-xs font-mono" style="color: var(--ink-faded);">{byYear.get(year)!.length} 篇</span>
+      </div>
+      <ul class="space-y-3">
         {byYear.get(year)!.map((p) => (
-          <li class="flex items-baseline gap-4 flex-wrap">
-            <time class="text-xs font-mono min-w-[3.25rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
-              {fmtMD(p.data.date)}
+          <li class="flex items-baseline gap-5 flex-wrap">
+            <time class="text-xs font-mono min-w-[3rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
+              {mdFmt(p.data.date)}
             </time>
-            <a href={`/post/${p.slug}`} class="text-base hover:text-[var(--ink-accent)] transition-colors" style="color: var(--ink);">
+            <a href={`/post/${p.slug}`} class="text-base hover:text-[color:var(--accent)] transition-colors" style="color: var(--ink);">
               {p.data.title}
             </a>
             {p.data.tags.length > 0 && (
-              <span class="text-xs" style="color: var(--ink-faded);">
+              <span class="text-xs" style="color: var(--ink-faded); letter-spacing: 0.05em;">
                 {p.data.tags.slice(0, 2).map((t) => `#${t}`).join(" ")}
               </span>
             )}
