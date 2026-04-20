@@ -1,0 +1,26 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const counts = new Map<string, number>();
+for (const p of posts) {
+  for (const t of p.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+}
+const tags = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+---
+<Layout title="Tags" description="All tags on PSYcHiC">
+  <header class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Tags</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">{tags.length} tags across {posts.length} posts</p>
+  </header>
+
+  <div class="flex flex-wrap gap-2">
+    {tags.map(([t, n]) => (
+      <a href={`/tagged/${encodeURIComponent(t)}`} class="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-full bg-stone-200 dark:bg-gray-800 hover:bg-stone-300 dark:hover:bg-gray-700 transition-colors">
+        <span class="text-sm text-gray-800 dark:text-gray-200">#{t}</span>
+        <span class="text-xs text-gray-500 dark:text-gray-500 font-mono">{n}</span>
+      </a>
+    ))}
+  </div>
+</Layout>

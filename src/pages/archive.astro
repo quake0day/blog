@@ -1,0 +1,49 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+// Group by year
+const byYear = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(p);
+}
+const years = Array.from(byYear.keys()).sort((a, b) => b - a);
+
+const fmtMD = (d: Date) =>
+  d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+---
+<Layout title="Archive" description={`All ${posts.length} posts`}>
+  <header class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Archive</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">{posts.length} posts since 2004</p>
+  </header>
+
+  {years.map((year) => (
+    <section class="mb-10">
+      <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-3 font-mono">{year}</h2>
+      <ul class="space-y-2">
+        {byYear.get(year)!.map((p) => (
+          <li class="flex items-baseline gap-3 flex-wrap">
+            <time class="text-xs text-gray-500 dark:text-gray-500 font-mono min-w-[3.5rem]" datetime={p.data.date.toISOString()}>
+              {fmtMD(p.data.date)}
+            </time>
+            <a href={`/post/${p.slug}`} class="text-sm text-gray-900 dark:text-gray-100 hover:underline underline-offset-4">
+              {p.data.title}
+            </a>
+            {p.data.tags.length > 0 && (
+              <span class="text-xs text-gray-400 dark:text-gray-600">
+                {p.data.tags.slice(0, 2).map((t) => `#${t}`).join(" ")}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Layout>

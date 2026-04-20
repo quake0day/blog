@@ -1,0 +1,53 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  const tags = new Map<string, typeof posts>();
+  for (const p of posts) {
+    for (const t of p.data.tags) {
+      if (!tags.has(t)) tags.set(t, []);
+      tags.get(t)!.push(p);
+    }
+  }
+  return Array.from(tags.entries()).map(([tag, list]) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: list.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+    },
+  }));
+};
+
+const { tag, posts } = Astro.props;
+const fmt = (d: Date) =>
+  d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+---
+<Layout title={`Tagged: ${tag}`} description={`Posts tagged ${tag}`}>
+  <header class="mb-8">
+    <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-500 font-mono mb-2">Tag</div>
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+      #{tag}
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">{posts.length} posts</p>
+  </header>
+
+  <ul class="space-y-4">
+    {posts.map((p) => (
+      <li class="flex items-baseline gap-3 flex-wrap">
+        <time class="text-xs text-gray-500 dark:text-gray-500 font-mono min-w-[6rem]" datetime={p.data.date.toISOString()}>
+          {fmt(p.data.date)}
+        </time>
+        <a href={`/post/${p.slug}`} class="text-base text-gray-900 dark:text-gray-100 hover:underline underline-offset-4">
+          {p.data.title}
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <div class="mt-12 text-sm">
+    <a href="/tags" class="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← All tags</a>
+  </div>
+</Layout>

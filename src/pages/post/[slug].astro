@@ -1,0 +1,76 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  return posts.map((p) => ({
+    params: { slug: p.slug },
+    props: { entry: p },
+  }));
+};
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const fmt = (d: Date) =>
+  d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+---
+<Layout title={entry.data.title} description={entry.data.title} ogType="article">
+  <article>
+    <header class="mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold leading-tight text-gray-900 dark:text-white mb-3">
+        {entry.data.title}
+      </h1>
+      <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 flex-wrap">
+        <time datetime={entry.data.date.toISOString()} class="font-mono text-xs">
+          {fmt(entry.data.date)}
+        </time>
+        {entry.data.tags.length > 0 && (
+          <span class="text-gray-400 dark:text-gray-600">·</span>
+        )}
+        <div class="flex flex-wrap gap-1.5">
+          {entry.data.tags.map((t: string) => (
+            <a href={`/tagged/${encodeURIComponent(t)}`} class="text-xs px-2 py-0.5 rounded-full bg-stone-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-stone-300 dark:hover:bg-gray-700 transition-colors">
+              {t}
+            </a>
+          ))}
+        </div>
+      </div>
+    </header>
+
+    <div class="prose-body text-gray-800 dark:text-gray-200">
+      <Content />
+    </div>
+  </article>
+
+  <hr class="my-12 border-stone-200 dark:border-gray-800" />
+
+  <!-- Disqus (preserves old comment thread via disqus_identifier = legacy dir name) -->
+  <section id="comments" class="mb-8">
+    <div id="disqus_thread"></div>
+    <script is:inline define:vars={{ legacy: entry.data.legacyDir ?? entry.slug, slug: entry.slug, title: entry.data.title }}>
+      var disqus_config = function () {
+        // Keep identifier stable across the migration so existing threads stay attached.
+        this.page.identifier = legacy || slug;
+        this.page.url = window.location.origin + "/post/" + slug;
+        this.page.title = title;
+      };
+      (function() {
+        var d = document, s = d.createElement("script");
+        s.src = "https://quakesblog.disqus.com/embed.js";
+        s.setAttribute("data-timestamp", +new Date());
+        (d.head || d.body).appendChild(s);
+      })();
+    </script>
+    <noscript>
+      Please enable JavaScript to view the
+      <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+    </noscript>
+  </section>
+
+  <div class="flex justify-between text-sm">
+    <a href="/" class="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Home</a>
+    <a href="/archive" class="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">All posts →</a>
+  </div>
+</Layout>

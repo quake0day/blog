@@ -1,0 +1,80 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
+  return paginate(posts, { pageSize: 5 });
+};
+
+const { page } = Astro.props;
+const fmt = (d: Date) =>
+  d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+
+function excerpt(raw: string | undefined, max = 260): string {
+  const text = (raw ?? "")
+    .replace(/^---[\s\S]*?---/m, "")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#>*_`~\-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > max ? text.slice(0, max) + "…" : text;
+}
+---
+<Layout>
+  <ul class="space-y-10">
+    {page.data.map((p) => (
+      <li>
+        <article>
+          <div class="flex items-baseline gap-3 mb-1 flex-wrap">
+            <time class="text-xs text-gray-500 dark:text-gray-500 font-mono" datetime={p.data.date.toISOString()}>
+              {fmt(p.data.date)}
+            </time>
+            {p.data.tags.slice(0, 3).map((t: string) => (
+              <a href={`/tagged/${encodeURIComponent(t)}`} class="text-xs px-2 py-0.5 rounded-full bg-stone-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-stone-300 dark:hover:bg-gray-700 transition-colors">
+                {t}
+              </a>
+            ))}
+          </div>
+          <h2 class="text-xl sm:text-2xl font-semibold leading-tight">
+            <a href={`/post/${p.slug}`} class="text-gray-900 dark:text-white hover:underline underline-offset-4 decoration-2">
+              {p.data.title}
+            </a>
+          </h2>
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            {excerpt(p.body)}
+          </p>
+          <div class="mt-2">
+            <a href={`/post/${p.slug}`} class="text-xs text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+              Read more →
+            </a>
+          </div>
+        </article>
+      </li>
+    ))}
+  </ul>
+
+  <nav class="mt-12 flex items-center justify-between text-sm">
+    <div>
+      {page.url.prev && (
+        <a href={page.url.prev} class="px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700 hover:bg-stone-100 dark:hover:bg-gray-800 transition-colors">
+          ← Newer
+        </a>
+      )}
+    </div>
+    <div class="text-xs text-gray-500 dark:text-gray-500">
+      Page {page.currentPage} / {page.lastPage} · {page.total} posts total
+    </div>
+    <div>
+      {page.url.next && (
+        <a href={page.url.next} class="px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700 hover:bg-stone-100 dark:hover:bg-gray-800 transition-colors">
+          Older →
+        </a>
+      )}
+    </div>
+  </nav>
+</Layout>

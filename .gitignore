@@ -1,0 +1,28 @@
+# build
+dist/
+.astro/
+
+# deps
+node_modules/
+
+# logs
+npm-debug.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# editors
+.idea/
+.vscode/
+
+# legacy import (reference only)
+_legacy/
+
+# wrangler scratch
+.wrangler/
