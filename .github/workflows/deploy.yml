@@ -1,0 +1,49 @@
+name: Deploy to Cloudflare Pages
+
+# Auto-publish pipeline:
+#   Obsidian vault edit → Obsidian Git plugin commits + pushes to main →
+#   this workflow triggers → build → wrangler pages deploy → site live.
+#
+# Required repo secrets (Settings → Secrets → Actions):
+#   - CLOUDFLARE_API_TOKEN   — CF token with "Cloudflare Pages: Edit"
+#   - CLOUDFLARE_ACCOUNT_ID  — 046c617ae6ff124ea360c3a6117188d5
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        run: pnpm build
+
+      - name: Strip files over 25 MiB (CF Pages per-file cap)
+        run: find dist -type f -size +24M -print -delete
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=quake0day-blog --branch=main --commit-dirty=true
