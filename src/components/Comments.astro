@@ -5,34 +5,39 @@ interface Props {
 const { slug } = Astro.props;
 ---
 <section id="comments" class="mt-12">
-  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-    <span>💬 留言</span>
-    <span class="text-sm text-gray-500 dark:text-gray-500 font-normal" id="comments-count"></span>
+  <h3 class="text-base font-semibold mb-5 flex items-center gap-2" style="color: var(--ink); letter-spacing: 0.05em;">
+    <span>留言</span>
+    <span class="text-sm font-normal font-mono" style="color: var(--ink-faded);" id="comments-count"></span>
   </h3>
 
-  <div id="comments-list" class="space-y-5 mb-8" data-slug={slug}>
-    <p class="text-sm text-gray-500 dark:text-gray-500 italic">加载中…</p>
+  <div id="comments-list" class="space-y-4 mb-10" data-slug={slug}>
+    <p class="text-sm italic" style="color: var(--ink-faded);">加载中…</p>
   </div>
 
-  <form id="comment-form" class="border-t border-stone-200 dark:border-gray-800 pt-6" data-slug={slug}>
-    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">发表留言</h4>
+  <form id="comment-form" class="border-t paper-rule pt-8" data-slug={slug}>
+    <h4 class="eyebrow mb-4">发表一条留言</h4>
     <div class="grid gap-3 sm:grid-cols-2">
       <input name="name" required maxlength="80" placeholder="姓名(必填)"
-        class="text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
-      <input name="email" type="email" maxlength="120" placeholder="邮箱(选填,不会公开)"
-        class="text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
+        class="text-sm rounded-sm px-3 py-2.5 focus:outline-none focus:ring-1"
+        style="background: var(--paper-bg); border: 1px solid var(--paper-rule); color: var(--ink);" />
+      <input name="email" type="email" maxlength="120" placeholder="邮箱(选填,不公开)"
+        class="text-sm rounded-sm px-3 py-2.5 focus:outline-none focus:ring-1"
+        style="background: var(--paper-bg); border: 1px solid var(--paper-rule); color: var(--ink);" />
     </div>
     <input name="website" maxlength="200" placeholder="网址(选填,以 http:// 开头)"
-      class="mt-3 w-full text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
-    <textarea name="body" required rows="4" maxlength="2000" placeholder="留言内容..."
-      class="mt-3 w-full text-sm rounded border border-stone-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-gray-400 focus:outline-none resize-y"></textarea>
+      class="mt-3 w-full text-sm rounded-sm px-3 py-2.5 focus:outline-none focus:ring-1"
+      style="background: var(--paper-bg); border: 1px solid var(--paper-rule); color: var(--ink);" />
+    <textarea name="body" required rows="5" maxlength="2000" placeholder="在此写下你的留言……"
+      class="mt-3 w-full text-sm rounded-sm px-3 py-2.5 focus:outline-none focus:ring-1 resize-y"
+      style="background: var(--paper-bg); border: 1px solid var(--paper-rule); color: var(--ink); font-family: inherit;"></textarea>
     <!-- honeypot -->
     <input name="hp_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
-    <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
-      <p class="text-xs text-gray-500 dark:text-gray-500">留言需经审核后才会显示。</p>
+    <div class="mt-4 flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-xs" style="color: var(--ink-faded);">留言需经管理员审核后才会显示。</p>
       <button type="submit"
-        class="text-sm px-4 py-2 rounded bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90 transition-opacity disabled:opacity-50">
-        提交留言
+        class="text-sm px-5 py-2 rounded-sm transition-all disabled:opacity-50"
+        style="background: var(--ink); color: var(--paper-bg); letter-spacing: 0.1em;">
+        提交
       </button>
     </div>
     <p id="comment-status" class="mt-3 text-sm hidden"></p>
@@ -64,22 +69,22 @@ const { slug } = Astro.props;
     function nl2br(s) { return esc(s).replace(/\n/g, "<br>"); }
 
     function render(comments) {
-      countEl.textContent = comments.length ? "(" + comments.length + ")" : "";
+      countEl.textContent = comments.length ? "· " + comments.length : "";
       if (!comments.length) {
-        listEl.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-500 italic">还没有留言,来写第一条吧。</p>';
+        listEl.innerHTML = '<p class="text-sm italic" style="color: var(--ink-faded);">还没有留言,写下第一条吧。</p>';
         return;
       }
       listEl.innerHTML = comments.map(function (c) {
         var nameHtml = c.website
-          ? '<a href="' + esc(c.website) + '" target="_blank" rel="nofollow noopener noreferrer" class="hover:underline">' + esc(c.name) + '</a>'
+          ? '<a href="' + esc(c.website) + '" target="_blank" rel="nofollow noopener noreferrer" class="link-accent" style="text-decoration:none">' + esc(c.name) + '</a>'
           : esc(c.name);
         return (
-          '<article class="rounded-lg bg-stone-100 dark:bg-gray-900 border border-stone-200 dark:border-gray-800 p-4">' +
+          '<article class="comment-card rounded-sm p-4">' +
             '<header class="flex items-baseline justify-between gap-2 mb-2">' +
-              '<strong class="text-sm text-gray-900 dark:text-gray-100">' + nameHtml + '</strong>' +
-              '<time class="text-xs text-gray-500 dark:text-gray-500 font-mono">' + fmtDate(c.created_at) + '</time>' +
+              '<strong class="text-sm" style="color: var(--ink);">' + nameHtml + '</strong>' +
+              '<time class="text-xs font-mono" style="color: var(--ink-faded);">' + fmtDate(c.created_at) + '</time>' +
             '</header>' +
-            '<p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">' + nl2br(c.body) + '</p>' +
+            '<p class="text-sm leading-relaxed" style="color: var(--ink-soft);">' + nl2br(c.body) + '</p>' +
           '</article>'
         );
       }).join("");

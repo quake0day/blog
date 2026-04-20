@@ -26,28 +26,26 @@ const fmt = (d: Date) =>
   d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
 ---
 <Layout title={`Tagged: ${tag}`} description={`Posts tagged ${tag}`}>
-  <header class="mb-8">
-    <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-500 font-mono mb-2">Tag</div>
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-      #{tag}
-    </h1>
-    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">{posts.length} posts</p>
+  <header class="mb-10 text-center">
+    <div class="eyebrow mb-3">标签</div>
+    <h1 class="text-3xl font-bold tracking-tight" style="color: var(--ink);">#{tag}</h1>
+    <p class="text-sm mt-2" style="color: var(--ink-faded);">{posts.length} 篇</p>
   </header>
 
-  <ul class="space-y-4">
+  <ul class="space-y-3">
     {posts.map((p) => (
-      <li class="flex items-baseline gap-3 flex-wrap">
-        <time class="text-xs text-gray-500 dark:text-gray-500 font-mono min-w-[6rem]" datetime={p.data.date.toISOString()}>
+      <li class="flex items-baseline gap-4 flex-wrap">
+        <time class="text-xs font-mono min-w-[6rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
           {fmt(p.data.date)}
         </time>
-        <a href={`/post/${p.slug}`} class="text-base text-gray-900 dark:text-gray-100 hover:underline underline-offset-4">
+        <a href={`/post/${p.slug}`} class="text-base hover:text-[var(--ink-accent)] transition-colors" style="color: var(--ink);">
           {p.data.title}
         </a>
       </li>
     ))}
   </ul>
 
-  <div class="mt-12 text-sm">
-    <a href="/tags" class="text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← All tags</a>
+  <div class="mt-12 text-sm text-center">
+    <a href="/tags" class="link-accent" style="text-decoration: none;">← 所有标签</a>
   </div>
 </Layout>

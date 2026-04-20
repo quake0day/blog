@@ -6,7 +6,6 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
-// Group by year
 const byYear = new Map<number, typeof posts>();
 for (const p of posts) {
   const y = p.data.date.getFullYear();
@@ -19,25 +18,28 @@ const fmtMD = (d: Date) =>
   d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
 ---
 <Layout title="Archive" description={`All ${posts.length} posts`}>
-  <header class="mb-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Archive</h1>
-    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">{posts.length} posts since 2004</p>
+  <header class="mb-10 text-center">
+    <div class="eyebrow mb-3">所有日志</div>
+    <h1 class="text-3xl font-bold tracking-tight" style="color: var(--ink);">Archive</h1>
+    <p class="text-sm mt-2" style="color: var(--ink-faded);">{posts.length} 篇 &nbsp;·&nbsp; since 2004</p>
   </header>
 
   {years.map((year) => (
-    <section class="mb-10">
-      <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-3 font-mono">{year}</h2>
-      <ul class="space-y-2">
+    <section class="mb-12">
+      <h2 class="text-sm font-bold mb-4 pb-2 border-b paper-rule tracking-[0.18em]" style="color: var(--ink-soft);">
+        {year}
+      </h2>
+      <ul class="space-y-2.5">
         {byYear.get(year)!.map((p) => (
-          <li class="flex items-baseline gap-3 flex-wrap">
-            <time class="text-xs text-gray-500 dark:text-gray-500 font-mono min-w-[3.5rem]" datetime={p.data.date.toISOString()}>
+          <li class="flex items-baseline gap-4 flex-wrap">
+            <time class="text-xs font-mono min-w-[3.25rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
               {fmtMD(p.data.date)}
             </time>
-            <a href={`/post/${p.slug}`} class="text-sm text-gray-900 dark:text-gray-100 hover:underline underline-offset-4">
+            <a href={`/post/${p.slug}`} class="text-base hover:text-[var(--ink-accent)] transition-colors" style="color: var(--ink);">
               {p.data.title}
             </a>
             {p.data.tags.length > 0 && (
-              <span class="text-xs text-gray-400 dark:text-gray-600">
+              <span class="text-xs" style="color: var(--ink-faded);">
                 {p.data.tags.slice(0, 2).map((t) => `#${t}`).join(" ")}
               </span>
             )}

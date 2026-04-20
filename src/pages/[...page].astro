@@ -14,7 +14,7 @@ const { page } = Astro.props;
 const fmt = (d: Date) =>
   d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
 
-function excerpt(raw: string | undefined, max = 260): string {
+function excerpt(raw: string | undefined, max = 220): string {
   const text = (raw ?? "")
     .replace(/^---[\s\S]*?---/m, "")
     .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
@@ -22,35 +22,46 @@ function excerpt(raw: string | undefined, max = 260): string {
     .replace(/[#>*_`~\-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  return text.length > max ? text.slice(0, max) + "…" : text;
+  return text.length > max ? text.slice(0, max) + "……" : text;
 }
 ---
 <Layout>
-  <ul class="space-y-10">
+  <header class="mb-10 pb-6 border-b paper-rule">
+    <div class="eyebrow mb-2">A Personal Journal</div>
+    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight" style="color: var(--ink);">
+      PSYcHiC
+    </h1>
+    <p class="mt-2 text-sm" style="color: var(--ink-faded);">
+      思绪 · 日记 · 技术 · 研究 &nbsp;·&nbsp; since 2004
+    </p>
+  </header>
+
+  <ul class="space-y-14">
     {page.data.map((p) => (
       <li>
         <article>
-          <div class="flex items-baseline gap-3 mb-1 flex-wrap">
-            <time class="text-xs text-gray-500 dark:text-gray-500 font-mono" datetime={p.data.date.toISOString()}>
+          <div class="flex items-baseline gap-3 mb-2 flex-wrap">
+            <time class="text-xs font-mono" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
               {fmt(p.data.date)}
             </time>
             {p.data.tags.slice(0, 3).map((t: string) => (
-              <a href={`/tagged/${encodeURIComponent(t)}`} class="text-xs px-2 py-0.5 rounded-full bg-stone-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-stone-300 dark:hover:bg-gray-700 transition-colors">
-                {t}
+              <a href={`/tagged/${encodeURIComponent(t)}`}
+                 class="text-xs link-accent" style="text-decoration: none;">
+                #{t}
               </a>
             ))}
           </div>
-          <h2 class="text-xl sm:text-2xl font-semibold leading-tight">
-            <a href={`/post/${p.slug}`} class="text-gray-900 dark:text-white hover:underline underline-offset-4 decoration-2">
+          <h2 class="post-card-title text-2xl sm:text-3xl leading-snug">
+            <a href={`/post/${p.slug}`} class="hover:underline underline-offset-8 decoration-1 transition-colors">
               {p.data.title}
             </a>
           </h2>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p class="mt-3 text-base leading-relaxed" style="color: var(--ink-soft);">
             {excerpt(p.body)}
           </p>
-          <div class="mt-2">
-            <a href={`/post/${p.slug}`} class="text-xs text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-              Read more →
+          <div class="mt-4">
+            <a href={`/post/${p.slug}`} class="text-sm link-accent" style="text-decoration: none;">
+              继续阅读 →
             </a>
           </div>
         </article>
@@ -58,21 +69,21 @@ function excerpt(raw: string | undefined, max = 260): string {
     ))}
   </ul>
 
-  <nav class="mt-12 flex items-center justify-between text-sm">
+  <nav class="mt-16 pt-8 border-t paper-rule flex items-center justify-between text-sm">
     <div>
       {page.url.prev && (
-        <a href={page.url.prev} class="px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700 hover:bg-stone-100 dark:hover:bg-gray-800 transition-colors">
-          ← Newer
+        <a href={page.url.prev} class="link-accent" style="text-decoration: none;">
+          ← 较新
         </a>
       )}
     </div>
-    <div class="text-xs text-gray-500 dark:text-gray-500">
-      Page {page.currentPage} / {page.lastPage} · {page.total} posts total
+    <div class="text-xs" style="color: var(--ink-faded); letter-spacing: 0.06em;">
+      第 {page.currentPage} / {page.lastPage} 页 &nbsp;·&nbsp; 共 {page.total} 篇
     </div>
     <div>
       {page.url.next && (
-        <a href={page.url.next} class="px-3 py-1.5 rounded border border-stone-300 dark:border-gray-700 hover:bg-stone-100 dark:hover:bg-gray-800 transition-colors">
-          Older →
+        <a href={page.url.next} class="link-accent" style="text-decoration: none;">
+          较旧 →
         </a>
       )}
     </div>
