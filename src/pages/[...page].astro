@@ -33,10 +33,15 @@ function excerpt(raw: string | undefined, max = 180): string {
 <Layout>
   {page.currentPage === 1 && (
     <section class="hero-panel border-b" style="border-color: var(--rule);">
+      <div class="hero-cloud hero-cloud-1" aria-hidden="true"></div>
+      <div class="hero-cloud hero-cloud-2" aria-hidden="true"></div>
+      <div class="hero-cloud hero-cloud-3" aria-hidden="true"></div>
       <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20">
         <div class="eyebrow mb-6">A Personal Journal &middot; Since 2004</div>
         <h1 class="hero-title text-[56px] sm:text-[80px] md:text-[96px]" style="color: var(--ink);">
-          PSYcHiC
+          {"PSYcHiC".split("").map((ch, i) => (
+            <span style={`animation-delay: ${0.05 + i * 0.07}s`}>{ch}</span>
+          ))}
         </h1>
         <div class="mt-8 flex items-center gap-4">
           <span class="rule-accent"></span>
@@ -63,7 +68,7 @@ function excerpt(raw: string | undefined, max = 180): string {
       {page.data.map((p, idx) => {
         const { y, m, day } = fmt(p.data.date);
         return (
-          <li>
+          <li class="post-reveal" style={`transition-delay: ${Math.min(idx, 3) * 80}ms`}>
             {idx > 0 && <div class="home-divider my-28"></div>}
             <article class="group">
               <div class="flex items-center gap-3 mb-5 flex-wrap">
