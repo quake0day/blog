@@ -38,16 +38,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Cache machine-translated EN posts between runs. Key includes a
-      # hash of the Chinese sources, so any content change busts the
-      # main key; restore-keys falls back to the previous cache so the
-      # script only re-translates whatever actually changed.
+      # Cache machine-translated EN posts between runs.
+      # Primary key is per-run (github.run_id) so cache saves ALWAYS
+      # succeed — actions/cache skips the save if the primary key
+      # already exists, which would otherwise strand new translations.
+      # restore-keys falls through to the previous cache and the
+      # translate script incrementally diffs against it.
       - name: Restore EN translation cache
         uses: actions/cache@v4
         with:
           path: src/content/posts-en
-          key: posts-en-v1-${{ hashFiles('src/content/posts/**/*.md') }}
+          key: posts-en-v2-${{ github.run_id }}
           restore-keys: |
+            posts-en-v2-
             posts-en-v1-
 
       - name: Translate new/changed posts (CF Workers AI)
