@@ -1,0 +1,48 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+const posts = await getCollection("posts-en", ({ data }) => !data.draft);
+const counts = new Map<string, number>();
+for (const p of posts) {
+  for (const t of p.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+}
+const tags = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+const maxN = Math.max(1, ...tags.map(([, n]) => n));
+---
+<Layout title="Tags" description="All tags on PSYcHiC" lang="en">
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <header class="mb-16">
+      <div class="eyebrow mb-4">Tags</div>
+      <h1 class="font-serif-sc text-[44px] sm:text-[56px] tracking-tight mb-4" style="color: var(--ink);">
+        Tag Index
+      </h1>
+      <div class="flex items-center gap-4">
+        <span class="rule-accent"></span>
+        <span class="text-sm" style="color: var(--ink-soft);">
+          {tags.length} tags &middot; across {posts.length} posts
+        </span>
+      </div>
+    </header>
+
+    {tags.length === 0 ? (
+      <p class="text-sm" style="color: var(--ink-faded);">
+        Translations are being generated. See the <a href="/tags" class="link-accent">Chinese tags</a>.
+      </p>
+    ) : (
+      <div class="flex flex-wrap gap-x-5 gap-y-4 items-baseline">
+        {tags.map(([t, n]) => {
+          const scale = 0.9 + (n / maxN) * 0.9;
+          return (
+            <a href={`/en/tagged/${encodeURIComponent(t)}`}
+              class="link-accent inline-flex items-baseline gap-1 hover:opacity-80 transition-opacity"
+              style={`font-size: ${scale}rem;`}>
+              <span>#{t}</span>
+              <span class="text-xs font-mono" style="color: var(--ink-faded);">{n}</span>
+            </a>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</Layout>

@@ -1,0 +1,155 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  const posts = (await getCollection("posts-en", ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
+  if (posts.length === 0) {
+    // No translations yet — emit a single stub page so /en/ still
+    // resolves with an empty-state message.
+    return [
+      {
+        params: { page: undefined },
+        props: {
+          page: {
+            data: [],
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            size: 0,
+            start: 0,
+            end: 0,
+            url: { current: "/en", prev: undefined, next: undefined, first: undefined, last: undefined },
+          },
+        },
+      },
+    ];
+  }
+  return paginate(posts, { pageSize: 5 });
+};
+
+const { page } = Astro.props;
+
+function fmt(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return { y, m, day };
+}
+
+function excerpt(raw: string | undefined, max = 200): string {
+  const text = (raw ?? "")
+    .replace(/^---[\s\S]*?---/m, "")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#>*_`~\-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > max ? text.slice(0, max) + "…" : text;
+}
+---
+<Layout lang="en">
+  {page.currentPage === 1 && (
+    <section class="hero-panel border-b" style="border-color: var(--rule);">
+      <div class="hero-cloud hero-cloud-1" aria-hidden="true"></div>
+      <div class="hero-cloud hero-cloud-2" aria-hidden="true"></div>
+      <div class="hero-cloud hero-cloud-3" aria-hidden="true"></div>
+      <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20">
+        <div class="eyebrow mb-6">A Personal Journal &middot; Since 2004</div>
+        <h1 class="hero-title text-[56px] sm:text-[80px] md:text-[96px]" style="color: var(--ink);">
+          {"PSYcHiC".split("").map((ch, i) => (
+            <span style={`animation-delay: ${0.05 + i * 0.07}s`}>{ch}</span>
+          ))}
+        </h1>
+        <div class="mt-8 flex items-center gap-4">
+          <span class="rule-accent"></span>
+          <span class="text-sm" style="color: var(--ink-soft);">
+            Thoughts &middot; Journal &middot; Tech &middot; Research
+          </span>
+        </div>
+        <p class="mt-6 max-w-md text-sm leading-relaxed" style="color: var(--ink-soft);">
+          Si Chen's personal blog. 20 years of intermittent writing, 119 entries, from high school to now. Machine-translated from Chinese.
+        </p>
+      </div>
+    </section>
+  )}
+
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    {page.currentPage > 1 && (
+      <header class="mb-16">
+        <div class="eyebrow mb-3">Page {String(page.currentPage).padStart(2, "0")}</div>
+        <div><span class="rule-accent"></span></div>
+      </header>
+    )}
+
+    {page.data.length === 0 ? (
+      <div class="py-20 text-center">
+        <div class="eyebrow mb-4">Translations Pending</div>
+        <p class="text-base" style="color: var(--ink-soft);">
+          English translations are being generated and will appear here shortly.
+        </p>
+        <p class="mt-2 text-sm" style="color: var(--ink-faded);">
+          Meanwhile, read the <a href="/" class="link-accent">Chinese original</a>.
+        </p>
+      </div>
+    ) : (
+      <ul>
+        {page.data.map((p, idx) => {
+          const { y, m, day } = fmt(p.data.date);
+          return (
+            <li class="post-reveal" style={`transition-delay: ${Math.min(idx, 3) * 80}ms`}>
+              {idx > 0 && <div class="home-divider my-28"></div>}
+              <article class="group">
+                <div class="flex items-center gap-3 mb-5 flex-wrap">
+                  <span class="chip-sky">{y}·{m}·{day}</span>
+                  {p.data.tags.slice(0, 3).map((t: string) => (
+                    <a href={`/en/tagged/${encodeURIComponent(t)}`} class="home-post-tag link-accent">
+                      #{t}
+                    </a>
+                  ))}
+                </div>
+                <h2 class="home-post-title text-[28px] sm:text-[40px] mb-5">
+                  <a href={`/en/post/${p.slug}`} class="transition-colors">{p.data.title}</a>
+                </h2>
+                <p class="text-[15px] sm:text-base leading-relaxed mb-6" style="color: var(--ink-soft); text-align: justify; text-align-last: left;">
+                  {excerpt(p.body)}
+                </p>
+                <a href={`/en/post/${p.slug}`} class="link-accent inline-flex items-center gap-1.5 text-sm font-medium">
+                  Read more
+                  <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+                </a>
+              </article>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+
+    {page.data.length > 0 && (
+      <nav class="mt-28 pt-10 flex items-center justify-between text-sm" style="border-top: 1px solid var(--rule);">
+        <div>
+          {page.url.prev && (
+            <a href={page.url.prev} class="link-accent inline-flex items-center gap-1.5">
+              <span>←</span> Newer
+            </a>
+          )}
+        </div>
+        <div class="text-xs font-mono" style="color: var(--ink-faded); letter-spacing: 0.08em;">
+          {String(page.currentPage).padStart(2, "0")} / {String(page.lastPage).padStart(2, "0")}
+          &nbsp;&middot;&nbsp;
+          {page.total} posts
+        </div>
+        <div>
+          {page.url.next && (
+            <a href={page.url.next} class="link-accent inline-flex items-center gap-1.5">
+              Older <span>→</span>
+            </a>
+          )}
+        </div>
+      </nav>
+    )}
+  </div>
+</Layout>

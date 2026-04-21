@@ -1,0 +1,74 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+const posts = (await getCollection("posts-en", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const byYear = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(p);
+}
+const years = Array.from(byYear.keys()).sort((a, b) => b - a);
+
+const mdFmt = (d: Date) => {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${m} / ${day}`;
+};
+---
+<Layout title="Archive" description={`All ${posts.length} posts`} lang="en">
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <header class="mb-16">
+      <div class="eyebrow mb-4">Archive</div>
+      <h1 class="font-serif-sc text-[44px] sm:text-[56px] tracking-tight mb-4" style="color: var(--ink);">
+        All Posts
+      </h1>
+      <div class="flex items-center gap-4">
+        <span class="rule-accent"></span>
+        <span class="text-sm" style="color: var(--ink-soft);">
+          {posts.length} posts &middot; since 2004
+        </span>
+      </div>
+    </header>
+
+    {posts.length === 0 ? (
+      <p class="text-sm" style="color: var(--ink-faded);">
+        Translations are being generated. Check the <a href="/archive" class="link-accent">Chinese archive</a>.
+      </p>
+    ) : (
+      years.map((year) => (
+        <section class="mb-14">
+          <div class="flex items-baseline gap-4 mb-6">
+            <h2 class="font-serif-sc text-2xl" style="color: var(--accent-deep);">
+              {year}
+            </h2>
+            <div class="flex-1 h-px" style="background: var(--rule);"></div>
+            <span class="text-xs font-mono" style="color: var(--ink-faded);">
+              {byYear.get(year)!.length} posts
+            </span>
+          </div>
+          <ul class="space-y-3">
+            {byYear.get(year)!.map((p) => (
+              <li class="flex items-baseline gap-5 flex-wrap">
+                <time class="text-xs font-mono min-w-[4rem]" style="color: var(--ink-faded);" datetime={p.data.date.toISOString()}>
+                  {mdFmt(p.data.date)}
+                </time>
+                <a href={`/en/post/${p.slug}`} class="text-[15px] hover:text-[color:var(--accent-hover)] transition-colors" style="color: var(--ink);">
+                  {p.data.title}
+                </a>
+                {p.data.tags.length > 0 && (
+                  <span class="text-xs" style="color: var(--ink-faded); letter-spacing: 0.05em;">
+                    {p.data.tags.slice(0, 2).map((t) => `#${t}`).join("  ")}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    )}
+  </div>
+</Layout>

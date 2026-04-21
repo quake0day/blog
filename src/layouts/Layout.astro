@@ -3,17 +3,32 @@ interface Props {
   title?: string;
   description?: string;
   ogType?: "website" | "article";
+  lang?: "zh" | "en";
 }
 const {
   title,
   description = "Si Chen's personal blog — thoughts, diary, tech, research. Since 2004.",
   ogType = "website",
+  lang = "zh",
 } = Astro.props;
 const siteTitle = "PSYcHiC";
 const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
+const htmlLang = lang === "en" ? "en" : "zh-CN";
+
+// Compute the matching URL in the other language so the toggle can
+// swap /post/foo ↔ /en/post/foo, /archive ↔ /en/archive, etc.
+const currentPath = Astro.url.pathname;
+let altPath: string;
+if (lang === "en") {
+  // On an EN page — strip /en prefix. /en/ → /, /en/post/foo → /post/foo.
+  altPath = currentPath.replace(/^\/en(\/|$)/, "/");
+} else {
+  // On a ZH page — prepend /en. "/" → "/en/", "/post/foo" → "/en/post/foo".
+  altPath = currentPath === "/" ? "/en/" : "/en" + currentPath;
+}
 ---
 <!doctype html>
-<html lang="zh-CN" class="scroll-smooth">
+<html lang={htmlLang} class="scroll-smooth">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -527,19 +542,53 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
 
       /* Selection */
       ::selection { background: var(--accent-pale); color: var(--ink); }
+
+      /* Language toggle — Kami-style solid-hex tag */
+      .lang-toggle {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        color: var(--accent-deep);
+        background: var(--accent-pale);
+        border-radius: 3px;
+        text-decoration: none;
+      }
+      .dark .lang-toggle { color: var(--accent); }
+      .lang-toggle:hover {
+        color: #fff;
+        background: var(--accent);
+      }
     </style>
   </head>
 
   <body class="antialiased">
     <nav class="sticky top-0 z-40 backdrop-blur-md" style="background: color-mix(in srgb, var(--bg) 85%, transparent); border-bottom: 1px solid var(--rule);">
       <div class="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between">
-        <a href="/" class="text-[1.4rem] tracking-tight font-serif-sc" style="color: var(--ink);">PSYcHiC</a>
+        <a href={lang === "en" ? "/en/" : "/"} class="text-[1.4rem] tracking-tight font-serif-sc" style="color: var(--ink);">PSYcHiC</a>
         <div class="flex items-center gap-0.5 sm:gap-1 text-sm" style="color: var(--ink-soft);">
-          <a href="/" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Home</a>
-          <a href="/archive" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Archive</a>
-          <a href="/tags" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Tags</a>
-          <a href="/about" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">About</a>
-          <a href="/rss.xml" title="RSS" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">RSS</a>
+          {lang === "en" ? (
+            <>
+              <a href="/en/" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Home</a>
+              <a href="/en/archive" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Archive</a>
+              <a href="/en/tags" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Tags</a>
+              <a href="/about" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">About</a>
+              <a href="/rss.xml" title="RSS" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">RSS</a>
+            </>
+          ) : (
+            <>
+              <a href="/" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Home</a>
+              <a href="/archive" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Archive</a>
+              <a href="/tags" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Tags</a>
+              <a href="/about" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">About</a>
+              <a href="/rss.xml" title="RSS" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">RSS</a>
+            </>
+          )}
+          <a href={altPath}
+             class="lang-toggle ml-1 px-2 py-1 rounded font-mono transition-colors"
+             title={lang === "en" ? "切换到中文" : "Switch to English"}
+             aria-label={lang === "en" ? "切换到中文" : "Switch to English"}>
+            {lang === "en" ? "中" : "EN"}
+          </a>
           <button id="theme-toggle" class="ml-1 p-1.5 rounded-full hover:opacity-70 transition-opacity" aria-label="Toggle dark mode">
             <svg class="w-4 h-4 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
             <svg class="w-4 h-4 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>

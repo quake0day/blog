@@ -182,6 +182,62 @@ pnpm run publish:cf   # 本地 build + 过滤大文件 + wrangler pages deploy
 
 ---
 
+## 英文版(`/en/`)— CF Workers AI 自动翻译
+
+站点每次 push 都会跑 `scripts/translate-posts.mjs`,对每篇中文博客走 Cloudflare Workers AI(模型 `@cf/meta/llama-3.3-70b-instruct-fp8-fast`)翻成英文,产物写到 `src/content/posts-en/<slug>.md`。Astro 构建时会基于这个 collection 生成 `/en/`、`/en/post/<slug>`、`/en/archive`、`/en/tags`、`/en/tagged/<t>`。
+
+### 关键机制
+
+- **增量**:每篇源文件算 SHA-256,记在 `.hashes.json`。未变化的跳过。
+- **缓存**:`src/content/posts-en/` 走 `actions/cache`,key 是所有源文件的 `hashFiles(...)`,retry-key 保底。翻译产物**不进 git**,只在 CI cache 里流转。
+- **故障容忍**:token 没有 `Workers AI: Read` 权限时,脚本打 warning 然后 exit 0,build 继续;`/en/` 页面就回退到"翻译生成中"的空态。已翻译的那些仍然可访问。
+- **成本**:每篇 ~200 行中文约 1-2 次调用,单次通常 <1s。首次全量翻 119 篇大概 15-30 分钟;后续每次只翻改动过的一两篇,~5-10s。
+
+### 一次性:给 CF Token 加 Workers AI 权限
+
+当前 `CLOUDFLARE_API_TOKEN` 只有 `Cloudflare Pages: Edit`,**不能调 AI**。去加一条:
+
+1. https://dash.cloudflare.com/profile/api-tokens
+2. 找到 `github-actions-pages-deploy`(或你当初命名的那个) → **Edit**
+3. Permissions 里 **Add more** → `Account` → `Workers AI` → **Read**
+4. Save → 不需要换 token,直接生效
+5. 下次 push(或 `gh workflow run "Deploy to Cloudflare Pages" --repo quake0day/blog`)就会开始翻译
+
+只要改了权限后 re-run 一次 deploy,119 篇就会全部翻译完,进 cache。之后你每改一篇中文,只会翻那一篇。
+
+### 本地试跑翻译
+
+```fish
+set -x CLOUDFLARE_API_TOKEN "cfut_xxx"  # 临时注入,不要写进 .env
+set -x CLOUDFLARE_ACCOUNT_ID "046c617ae6ff124ea360c3a6117188d5"
+pnpm run translate           # 增量
+pnpm run translate:force     # 强制全部重翻
+```
+
+翻译产物在 `src/content/posts-en/*.md`,随便读随便改(下次 push 会被 hash 对比盖掉,除非你同时改源文件或删 `.hashes.json` 对应条目)。
+
+### 手动编辑某篇的英文版
+
+不推荐(下次 push 会被覆盖)。如果确实需要人工接管某篇:
+1. 编辑 `src/content/posts-en/<slug>.md`
+2. 把该 slug 的条目从 `.hashes.json` 里手动设成一个**固定的假值**(比如 `"manual"`)
+3. 下次脚本看到 hash 不匹配会想重翻,但你可以进一步改脚本跳过带 "manual" 前缀的条目。目前没实现这个 opt-out,需要的话告诉我。
+
+### 评论线程跨语言共享
+
+`/en/post/<slug>` 和 `/post/<slug>` 共用同一份评论 —— EN 页面用 frontmatter 里的 `origSlug` 作为评论 `slug` 传给 `Comments` 组件。读者不会看到两边各一份。
+
+### 更换翻译模型
+
+`scripts/translate-posts.mjs` 顶部常量 `MODEL`。候选:
+- `@cf/meta/llama-3.3-70b-instruct-fp8-fast`(当前)
+- `@cf/qwen/qwen1.5-14b-chat-awq`(Qwen,中文更地道但英文略僵)
+- `@cf/meta/llama-3.1-70b-instruct`(旧版 70B)
+
+换模型后建议 `pnpm run translate:force` 让全部重翻对齐。
+
+---
+
 ## Disqus 评论
 
 - Shortname: `quakesblog`

@@ -2,10 +2,13 @@ name: Deploy to Cloudflare Pages
 
 # Auto-publish pipeline:
 #   Obsidian vault edit → Obsidian Git plugin commits + pushes to main →
-#   this workflow triggers → build → wrangler pages deploy → site live.
+#   this workflow triggers → translate (CF Workers AI, incremental) →
+#   build → wrangler pages deploy → site live.
 #
 # Required repo secrets (Settings → Secrets → Actions):
-#   - CLOUDFLARE_API_TOKEN   — CF token with "Cloudflare Pages: Edit"
+#   - CLOUDFLARE_API_TOKEN   — CF token with both:
+#         · Account → Cloudflare Pages: Edit
+#         · Account → Workers AI: Read       ← needed for /en/ auto-translation
 #   - CLOUDFLARE_ACCOUNT_ID  — 046c617ae6ff124ea360c3a6117188d5
 
 on:
@@ -34,6 +37,24 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # Cache machine-translated EN posts between runs. Key includes a
+      # hash of the Chinese sources, so any content change busts the
+      # main key; restore-keys falls back to the previous cache so the
+      # script only re-translates whatever actually changed.
+      - name: Restore EN translation cache
+        uses: actions/cache@v4
+        with:
+          path: src/content/posts-en
+          key: posts-en-v1-${{ hashFiles('src/content/posts/**/*.md') }}
+          restore-keys: |
+            posts-en-v1-
+
+      - name: Translate new/changed posts (CF Workers AI)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm run translate
 
       - name: Build site
         run: pnpm build

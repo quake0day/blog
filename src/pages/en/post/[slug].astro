@@ -1,0 +1,65 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Layout from "../../../layouts/Layout.astro";
+import Comments from "../../../components/Comments.astro";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const posts = await getCollection("posts-en", ({ data }) => !data.draft);
+  return posts.map((p) => ({
+    params: { slug: p.slug },
+    props: { entry: p },
+  }));
+};
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const d = entry.data.date;
+const y = d.getFullYear();
+const m = String(d.getMonth() + 1).padStart(2, "0");
+const day = String(d.getDate()).padStart(2, "0");
+// The comment thread is shared across languages — key on the original zh slug.
+const commentSlug = entry.data.origSlug || entry.slug;
+---
+<Layout title={entry.data.title} description={entry.data.title} ogType="article" lang="en">
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+    <article>
+      <header class="mb-14 pb-10" style="border-bottom: 1px solid var(--rule);">
+        <div class="eyebrow mb-6">Journal</div>
+        <h1 class="font-serif-sc text-[30px] sm:text-[44px] leading-[1.25] tracking-tight mb-7" style="color: var(--ink);">
+          {entry.data.title}
+        </h1>
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="chip-sky">{y}·{m}·{day}</span>
+          {entry.data.tags.map((t: string) => (
+            <a href={`/en/tagged/${encodeURIComponent(t)}`} class="home-post-tag link-accent">#{t}</a>
+          ))}
+        </div>
+        <p class="mt-5 text-xs" style="color: var(--ink-faded);">
+          Machine-translated from Chinese.
+          {entry.data.origSlug && (
+            <>
+              &nbsp;·&nbsp;
+              <a href={`/post/${entry.data.origSlug}`} class="link-accent">Read original</a>
+            </>
+          )}
+        </p>
+      </header>
+
+      <div class="prose-body">
+        <Content />
+      </div>
+    </article>
+
+    <div class="my-20 flex justify-center">
+      <span class="rule-accent"></span>
+    </div>
+
+    <Comments slug={commentSlug} />
+
+    <div class="mt-20 pt-8 flex justify-between text-sm" style="border-top: 1px solid var(--rule); color: var(--ink-faded);">
+      <a href="/en/" class="link-accent inline-flex items-center gap-1.5"><span>←</span> Home</a>
+      <a href="/en/archive" class="link-accent inline-flex items-center gap-1.5">All posts <span>→</span></a>
+    </div>
+  </div>
+</Layout>
