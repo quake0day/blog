@@ -26,3 +26,7 @@ _legacy/
 
 # wrangler scratch
 .wrangler/
+
+# Obsidian per-device UI state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
