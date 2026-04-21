@@ -214,14 +214,16 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       .dark .prose-body img { box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 10px 40px rgba(0,0,0,0.35); }
 
       .prose-body blockquote {
-        border-left: 3px solid var(--accent);
-        padding: 0.4em 0 0.4em 1.25em;
-        margin: 1.8em 0;
+        border-left: 2px solid var(--ink-faded);
+        padding: 0.2em 0 0.2em 1.3em;
+        margin: 1.8em 0 1.8em 0.5em;
         color: var(--ink-soft);
         font-style: italic;
-        background: linear-gradient(to right, var(--accent-pale), transparent 55%);
         text-align: left;
       }
+      .prose-body blockquote p { margin: 0.6em 0; }
+      .prose-body blockquote p:first-child { margin-top: 0; }
+      .prose-body blockquote p:last-child { margin-bottom: 0; }
 
       .prose-body ul, .prose-body ol { padding-left: 1.5em; margin: 1.2em 0; text-align: left; }
       .prose-body li { margin: 0.35em 0; }
