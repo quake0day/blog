@@ -5,7 +5,7 @@ interface Props {
 const { slug } = Astro.props;
 ---
 <section id="comments" class="mt-12">
-  <h3 class="text-base font-semibold mb-5 flex items-center gap-2" style="color: var(--ink); letter-spacing: 0.05em;">
+  <h3 class="text-base font-semibold mb-5 flex items-center gap-2" style="color: var(--ink); letter-spacing: 0.04em;">
     <span>留言</span>
     <span class="text-sm font-normal font-mono" style="color: var(--ink-faded);" id="comments-count"></span>
   </h3>
@@ -16,23 +16,16 @@ const { slug } = Astro.props;
 
   <form id="comment-form" class="pt-8" data-slug={slug} style="border-top: 1px solid var(--rule);">
     <h4 class="eyebrow mb-5">发表留言</h4>
-    <div class="grid gap-3 sm:grid-cols-2">
-      <input name="name" required maxlength="80" placeholder="姓名(必填)"
-        class="paper-input text-sm rounded px-3.5 py-2.5" />
-      <input name="email" type="email" maxlength="120" placeholder="邮箱(选填,不公开)"
-        class="paper-input text-sm rounded px-3.5 py-2.5" />
-    </div>
-    <input name="website" maxlength="200" placeholder="网址(选填,以 http:// 开头)"
-      class="paper-input mt-3 w-full text-sm rounded px-3.5 py-2.5" />
+    <input name="name" required maxlength="80" placeholder="姓名"
+      class="paper-input w-full text-sm rounded px-3.5 py-2.5" />
     <textarea name="body" required rows="5" maxlength="2000" placeholder="在此写下你的留言……"
       class="paper-input mt-3 w-full text-sm rounded px-3.5 py-2.5 resize-y"
       style="font-family: inherit;"></textarea>
     <!-- honeypot -->
-    <input name="hp_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
-    <div class="mt-5 flex items-center justify-between gap-3 flex-wrap">
-      <p class="text-xs" style="color: var(--ink-faded);">留言需经审核后才会显示。</p>
-      <button type="submit"
-        class="paper-btn text-sm px-6 py-2.5 rounded disabled:opacity-50">
+    <input name="hp_url" tabindex="-1" autocomplete="off" aria-hidden="true"
+      style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
+    <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
+      <button type="submit" class="paper-btn text-sm px-6 py-2.5 rounded disabled:opacity-50">
         提交
       </button>
     </div>
@@ -48,9 +41,10 @@ const { slug } = Astro.props;
     var statusEl = document.getElementById("comment-status");
     if (!listEl || !formEl) return;
     var slug = listEl.getAttribute("data-slug") || "";
+    var LOCAL_KEY = "psychic-my-cmts-" + slug;
 
     function esc(s) {
-      return String(s).replace(/[&<>"']/g, function (c) {
+      return String(s || "").replace(/[&<>"']/g, function (c) {
         return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
       });
     }
@@ -64,9 +58,24 @@ const { slug } = Astro.props;
     }
     function nl2br(s) { return esc(s).replace(/\n/g, "<br>"); }
 
+    // Visitor's own "pending" comments stored here, only visible in their own browser.
+    function loadLocal() {
+      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
+      catch { return []; }
+    }
+    function saveLocal(arr) {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(arr)); } catch {}
+    }
+    function pruneLocal(serverIds) {
+      var kept = loadLocal().filter(function (c) { return !serverIds.has(c.id); });
+      saveLocal(kept);
+      return kept;
+    }
+
     function render(comments) {
-      countEl.textContent = comments.length ? "· " + comments.length : "";
-      if (!comments.length) {
+      var n = comments.length;
+      countEl.textContent = n ? "· " + n : "";
+      if (!n) {
         listEl.innerHTML = '<p class="text-sm italic" style="color: var(--ink-faded);">还没有留言,写下第一条吧。</p>';
         return;
       }
@@ -86,15 +95,25 @@ const { slug } = Astro.props;
       }).join("");
     }
 
-    function load() {
+    function refresh() {
       fetch("/api/comments?slug=" + encodeURIComponent(slug))
         .then(function (r) { return r.json(); })
-        .then(function (data) { render(data.comments || []); })
+        .then(function (data) {
+          var server = data.comments || [];
+          var serverIds = new Set(server.map(function (c) { return c.id; }));
+          // Drop any local entries whose server counterparts have appeared (i.e., approved).
+          var local = pruneLocal(serverIds);
+          // Server-approved first (by created_at), then local pending, then render.
+          var merged = server.concat(local);
+          // Sort ascending by created_at to match backend order.
+          merged.sort(function (a, b) { return (a.created_at || 0) - (b.created_at || 0); });
+          render(merged);
+        })
         .catch(function () {
-          listEl.innerHTML = '<p class="text-sm text-red-600">评论加载失败。</p>';
+          listEl.innerHTML = '<p class="text-sm" style="color: #c03;">评论加载失败。</p>';
         });
     }
-    load();
+    refresh();
 
     formEl.addEventListener("submit", function (ev) {
       ev.preventDefault();
@@ -106,8 +125,6 @@ const { slug } = Astro.props;
       var payload = {
         slug: slug,
         name: fd.get("name") || "",
-        email: fd.get("email") || "",
-        website: fd.get("website") || "",
         body: fd.get("body") || "",
         hp_url: fd.get("hp_url") || "",
       };
@@ -123,18 +140,28 @@ const { slug } = Astro.props;
         .then(function (res) {
           btn.disabled = false;
           if (res.ok && res.d.ok) {
-            statusEl.textContent = res.d.message || "已提交,等待审核。";
-            statusEl.className = "mt-3 text-sm text-green-700 dark:text-green-400";
+            // Stash the new comment locally so only this visitor sees it until moderated.
+            if (res.d.comment) {
+              var local = loadLocal();
+              local.push(res.d.comment);
+              saveLocal(local);
+            }
+            statusEl.textContent = "已提交 ✓";
+            statusEl.className = "mt-3 text-sm";
+            statusEl.style.color = "var(--accent-deep)";
             formEl.reset();
+            refresh();
           } else {
             statusEl.textContent = (res.d && res.d.error) || "提交失败,请稍后再试。";
-            statusEl.className = "mt-3 text-sm text-red-600 dark:text-red-400";
+            statusEl.className = "mt-3 text-sm";
+            statusEl.style.color = "#c03";
           }
         })
         .catch(function () {
           btn.disabled = false;
           statusEl.textContent = "网络错误,请稍后再试。";
-          statusEl.className = "mt-3 text-sm text-red-600 dark:text-red-400";
+          statusEl.className = "mt-3 text-sm";
+          statusEl.style.color = "#c03";
         });
     });
   })();

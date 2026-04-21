@@ -85,12 +85,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (recent) return bad("提交太频繁,请稍后再试", 429);
   }
 
-  await env.DB.prepare(
+  const inserted = await env.DB.prepare(
     `INSERT INTO comments (post_slug, name, email, website, body, status, ip, user_agent, created_at)
-     VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)
+     RETURNING id, name, website, body, created_at`
   )
     .bind(slug, name, email || null, website || null, commentBody, ip, ua, now)
-    .run();
+    .first();
 
-  return json({ ok: true, message: "评论已提交,等待管理员审核后显示。" });
+  return json({ ok: true, comment: inserted });
 };
