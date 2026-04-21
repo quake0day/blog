@@ -210,15 +210,18 @@ const { slug } = Astro.props;
     font-size: 11px;
     letter-spacing: 0.04em;
   }
-  .chat-meta .chat-pending {
+  .chat-delivered {
+    margin: 4px 6px 0;
     font-size: 10.5px;
-    padding: 1px 7px;
-    border-radius: 999px;
-    background: var(--bg-sky-soft);
-    color: var(--accent-deep);
     letter-spacing: 0.04em;
+    color: var(--ink-faded);
+    align-self: flex-end;
+    opacity: 0;
+    animation: deliveredFade 0.5s ease-out 0.25s forwards;
   }
-  :global(.dark) .chat-meta .chat-pending { color: var(--accent); }
+  @keyframes deliveredFade {
+    to { opacity: 1; }
+  }
 
   .chat-bubble {
     position: relative;
@@ -452,9 +455,8 @@ const { slug } = Astro.props;
       try { localStorage.setItem(MINE_IDS_KEY, JSON.stringify(Array.from(set))); } catch {}
     }
 
-    function rowHTML(c, opts) {
+    function rowHTML(c, opts, showDelivered) {
       var isSelf = !!(opts && opts.self);
-      var isPending = !!(opts && opts.pending);
       var av = avatarFor(c.name);
       var nameHtml = c.website
         ? '<a href="' + esc(c.website) + '" target="_blank" rel="nofollow noopener noreferrer" style="color:inherit;text-decoration:none;">' + esc(c.name) + '</a>'
@@ -466,9 +468,9 @@ const { slug } = Astro.props;
             '<div class="chat-meta">' +
               '<span class="chat-name">' + nameHtml + '</span>' +
               '<span class="chat-time">' + fmtDate(c.created_at) + '</span>' +
-              (isPending ? '<span class="chat-pending">审核中</span>' : '') +
             '</div>' +
             '<div class="chat-bubble">' + nl2br(c.body) + '</div>' +
+            (isSelf && showDelivered ? '<div class="chat-delivered">已送达</div>' : '') +
           '</div>' +
         '</li>'
       );
@@ -483,7 +485,14 @@ const { slug } = Astro.props;
       }
       emptyEl.classList.add("hidden");
       countEl.textContent = rows.length + " 条";
-      listEl.innerHTML = rows.map(function (r) { return rowHTML(r.c, r.opts); }).join("");
+      // Find the last self row so we can append an iMessage-style "已送达" under it
+      var lastSelfIdx = -1;
+      for (var i = rows.length - 1; i >= 0; i--) {
+        if (rows[i].opts && rows[i].opts.self) { lastSelfIdx = i; break; }
+      }
+      listEl.innerHTML = rows.map(function (r, idx) {
+        return rowHTML(r.c, r.opts, idx === lastSelfIdx);
+      }).join("");
     }
 
     function autoScrollIfAtBottom(before) {
@@ -573,9 +582,9 @@ const { slug } = Astro.props;
           '<div class="chat-meta">' +
             '<span class="chat-name">' + esc(name) + '</span>' +
             '<span class="chat-time">刚刚</span>' +
-            '<span class="chat-pending">发送中…</span>' +
           '</div>' +
-          '<div class="chat-bubble" style="opacity:0.85;">' + esc(text) + '</div>' +
+          '<div class="chat-bubble">' + esc(text) + '</div>' +
+          '<div class="chat-delivered">已送达</div>' +
         '</div>';
       listEl.appendChild(tmpItem);
       scrollEl.scrollTop = scrollEl.scrollHeight;
@@ -600,7 +609,7 @@ const { slug } = Astro.props;
               mineIds.add(res.d.comment.id);
               saveMineIds(mineIds);
             }
-            setStatus("ok", "已发送 ✓ 留言审核通过后就会公开显示");
+            setStatus("ok", "已送达 ✓");
             if (tmp) tmp.remove();
             refresh(false);
           } else {
