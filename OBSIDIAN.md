@@ -54,7 +54,7 @@ Settings → **Obsidian Git**,按下面设:
 
 1. Settings → **Core plugins** → 启用 **Templates**
 2. Settings → **Templates**:
-   - **Template folder location**: `.obsidian/templates`(仓库里已经放好一个)
+   - **Template folder location**: `_templates`(仓库里已经放好一个)
    - **Date format**: `YYYY-MM-DD`
    - **Time format**: `HH:mm:ss`
 
