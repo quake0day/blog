@@ -39,6 +39,11 @@ const CHUNK_CHAR_LIMIT = 3000; // rough budget for markdown chunks
 const MAX_TOKENS = 4096;
 const MAX_RETRIES = 3;
 
+// Declared up-front (not after the main driver) so the hoisted
+// helper functions can reach it before TDZ releases.
+const SYSTEM_PROMPT =
+  "You are a professional literary translator specialized in Chinese→English. Translate faithfully into natural, readable English that preserves the author's voice, tone, rhythm, and cultural nuance. For markdown input, preserve ALL markdown syntax verbatim (headings, links, images, code blocks, lists, HTML tags, emphasis markers). Do not translate code, URLs, filenames, or content inside backticks or fenced code blocks. Do not add a preamble, apology, translator's note, or explanation. Output ONLY the translation.";
+
 const ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID;
 const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const FORCE = process.argv.includes("--force");
@@ -239,9 +244,6 @@ async function translateBody(body) {
   process.stdout.write("\n");
   return out.join("\n\n");
 }
-
-const SYSTEM_PROMPT =
-  "You are a professional literary translator specialized in Chinese→English. Translate faithfully into natural, readable English that preserves the author's voice, tone, rhythm, and cultural nuance. For markdown input, preserve ALL markdown syntax verbatim (headings, links, images, code blocks, lists, HTML tags, emphasis markers). Do not translate code, URLs, filenames, or content inside backticks or fenced code blocks. Do not add a preamble, apology, translator's note, or explanation. Output ONLY the translation.";
 
 function userPrompt(kind, text) {
   if (kind === "title") {
