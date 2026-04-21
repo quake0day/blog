@@ -41,103 +41,151 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
     -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Kami-style typography stack:
+        sans     = Inter + PingFang SC (UI, body)
+        serif    = Newsreader + Noto Serif SC (titles, editorial)
+        mono     = JetBrains Mono
+      Serif weight locked at 500 per Kami's single-weight rule.
+    -->
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@600;700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Noto+Serif+SC:wght@500;600&display=swap"
       rel="stylesheet"
     />
 
     <style is:global>
       /* ==========================================================
-         Color tokens — "黑白灰 + 壹" (grayscale + one sky-blue accent)
-         Kept global so utility classes defined here (hero-panel,
-         hero-title, eyebrow, chip-sky, prose-body, etc.) apply to
-         elements in child pages too.
+         Kami-style design tokens — warm parchment canvas + user's
+         sky-blue kept as the single accent (kami uses ink blue
+         #1B365D; we keep this blog's identity color).
+
+         Principles borrowed from tw93/kami:
+           · Parchment base, never pure white
+           · Single accent, < 5% surface area
+           · All neutrals warm (yellow-brown undertone)
+           · Serif weight locked at 500
+           · Line-height scale: 1.1-1.3 titles / 1.4-1.45 dense /
+             1.5-1.55 reading body. Never 1.6+
+           · No italic anywhere
+           · Tag backgrounds in solid hex (rgba double-rect bug
+             doesn't apply to web but keeps the tone consistent)
          ========================================================== */
       :root {
-        --bg:          #f8fbfd;   /* page bg: near-white, hint of sky */
-        --bg-panel:    #ffffff;
-        --bg-sky:      #dbecf5;   /* softer pale sky */
-        --bg-sky-top:  #c2dcec;   /* top of hero gradient — visible but gentle */
-        --bg-sky-soft: #edf5fa;
+        /* canvas — warm parchment */
+        --bg:          #f5f4ed;   /* parchment page bg */
+        --bg-panel:    #faf9f5;   /* ivory lifted surface */
+        --bg-soft:     #efede3;   /* between parchment and ivory */
+        --bg-sand:     #e8e6dc;   /* warm sand, interactive surface */
 
-        --rule:        #d8e4ec;   /* hairline */
-        --rule-soft:   #eaf0f5;
+        /* hairlines */
+        --rule:        #e0ddd2;   /* visible border (warm) */
+        --rule-soft:   #e8e5da;   /* subtler border */
 
-        --ink:         #0f1720;   /* near-black, slightly cool */
-        --ink-soft:    #4a5568;
-        --ink-faded:   #8290a0;
+        /* warm-neutral text ramp (yellow-brown undertone) */
+        --ink:         #141413;   /* near-black, warm olive under-tone */
+        --ink-soft:    #3d3d3a;   /* secondary */
+        --ink-mid:     #4d4c48;   /* charcoal, dense body */
+        --ink-faded:   #87867f;   /* stone, meta */
 
-        --accent:      #3a9ad9;   /* the one accent — sky blue */
+        /* the one accent — kept from prior design */
+        --accent:      #3a9ad9;
         --accent-hover:#2080bb;
         --accent-deep: #1769a3;
-        --accent-pale: #c9e4f3;
+        --accent-pale: #E4ECF5;   /* Kami-style solid tint for tags */
+
+        /* hero canvas tones — parchment + barely-there sky hint */
+        --hero-top:    #eef3f7;
+        --hero-mid:    #f1efe4;
+
+        /* legacy aliases still referenced in Comments/others */
+        --bg-sky:      #dbecf5;
+        --bg-sky-top:  #c2dcec;
+        --bg-sky-soft: #edf3f8;
       }
       .dark {
-        --bg:          #0b1117;
-        --bg-panel:    #141b23;
-        --bg-sky:      #18324a;
-        --bg-sky-top:  #1f4566;
-        --bg-sky-soft: #122536;
-        --rule:        #253340;
-        --rule-soft:   #1c2832;
-        --ink:         #e8eef3;
-        --ink-soft:    #a2adb9;
-        --ink-faded:   #6a7684;
+        --bg:          #141413;   /* Kami deep-dark, not pure black */
+        --bg-panel:    #1e1d1a;   /* warm dark surface */
+        --bg-soft:     #262521;
+        --bg-sand:     #30302e;   /* dark-surface */
+
+        --rule:        #30302e;
+        --rule-soft:   #262521;
+
+        --ink:         #f1eee4;
+        --ink-soft:    #c8c3b6;
+        --ink-mid:     #a5a093;
+        --ink-faded:   #87867f;
+
         --accent:      #62b8e6;
         --accent-hover:#8fd0ee;
         --accent-deep: #3a9ad9;
-        --accent-pale: #1c3a52;
+        --accent-pale: #1e3a55;
+
+        --hero-top:    #1d2731;
+        --hero-mid:    #1a1915;
+
+        --bg-sky:      #1a2a3a;
+        --bg-sky-top:  #203648;
+        --bg-sky-soft: #1a231c;
       }
 
       html, body { background: var(--bg); color: var(--ink); }
 
       /* ==========================================================
-         Typography — Montserrat + PingFang SC, with CJK spacing
+         Typography — Inter sans + Newsreader/Noto Serif SC serif
          ========================================================== */
       body {
         font-family:
-          "Montserrat",
+          "Inter",
           "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
           -apple-system, BlinkMacSystemFont, sans-serif;
         font-weight: 400;
         font-size: 16px;
-        line-height: 1.75;
+        line-height: 1.55;                 /* Kami reading body */
         letter-spacing: 0;
-        font-feature-settings: "kern" 1, "palt" 1, "tnum" 1;
+        font-feature-settings: "kern" 1, "palt" 1, "tnum" 1, "ss01" 1, "cv11" 1;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        /* Auto spacing between CJK and Latin/digits (Chrome 123+) */
         text-spacing-trim: auto;
       }
 
+      /* Kami rule: never italic */
+      em, i, cite, address, dfn, var, blockquote { font-style: normal; }
+
       .font-serif-sc {
-        font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+        font-family:
+          "Newsreader",
+          "Noto Serif SC", "Source Han Serif SC",
+          "Songti SC", "STSong",
+          Georgia, serif;
+        font-weight: 500;                  /* Kami: serif weight locked */
+        font-optical-sizing: auto;
       }
       .font-mono {
         font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-feature-settings: "tnum" 1, "zero" 1;
       }
 
       /* ==========================================================
          Section label (small caps eyebrow)
          ========================================================== */
       .eyebrow {
-        font-family: "Montserrat", sans-serif;
-        font-size: 12px;
+        font-family: "Inter", sans-serif;
+        font-size: 11.5px;
         font-weight: 500;
-        letter-spacing: 0.24em;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
         color: var(--accent-deep);
       }
       .dark .eyebrow { color: var(--accent); }
 
-      /* Decorative hairline rule */
+      /* Decorative hairline rule — Kami prefers 1px whisper */
       .rule-accent {
         display: inline-block;
-        width: 2.5rem;
-        height: 2px;
+        width: 2.25rem;
+        height: 1px;
         background: var(--accent);
-        border-radius: 2px;
       }
 
       /* ==========================================================
@@ -153,15 +201,15 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       .link-accent:hover { color: var(--accent-hover); }
 
       /* ==========================================================
-         Prose body (post detail)
-         Body at 18px / line-height 1.85, justified per 蔡振原 guide.
-         Chinese line-height absolute > English at same size.
+         Prose body — Kami typography
+         Reading body line-height capped at 1.55; titles tight 1.2-1.3.
+         Headings use serif @ weight 500 (Kami single-weight rule).
          ========================================================== */
       .prose-body {
-        font-size: 17px;
-        line-height: 1.85;
+        font-size: 16px;
+        line-height: 1.55;                 /* Kami reading body */
         color: var(--ink);
-        letter-spacing: 0.005em;
+        letter-spacing: 0.002em;
         text-align: justify;
         text-align-last: left;
         text-justify: inter-character;
@@ -169,23 +217,24 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         word-wrap: break-word;
       }
       @media (min-width: 640px) {
-        .prose-body { font-size: 18px; line-height: 1.9; }
+        .prose-body { font-size: 17px; line-height: 1.55; }
       }
-      .prose-body p { margin: 1.75em 0; }
+      .prose-body p { margin: 1.2em 0; }
       .prose-body p:first-child { margin-top: 0; }
       .prose-body p:last-child { margin-bottom: 0; }
 
       .prose-body h1, .prose-body h2, .prose-body h3, .prose-body h4 {
-        font-family: "Noto Serif SC", Georgia, serif;
+        font-family: "Newsreader", "Noto Serif SC", Georgia, serif;
+        font-weight: 500;                  /* Kami locked weight */
         color: var(--ink);
-        line-height: 1.4;
+        line-height: 1.25;
         text-align: left;
-        letter-spacing: 0.015em;
+        letter-spacing: 0;
       }
-      .prose-body h1 { font-size: 28px; font-weight: 700; margin: 2.6em 0 1em; }
-      .prose-body h2 { font-size: 24px; font-weight: 700; margin: 2.4em 0 0.9em; }
-      .prose-body h3 { font-size: 20px; font-weight: 600; margin: 2.1em 0 0.8em; }
-      .prose-body h4 { font-size: 18px; font-weight: 600; margin: 1.8em 0 0.7em; }
+      .prose-body h1 { font-size: 28px; margin: 2.4em 0 0.85em; }
+      .prose-body h2 { font-size: 23px; margin: 2.1em 0 0.8em; }
+      .prose-body h3 { font-size: 19px; margin: 1.8em 0 0.65em; line-height: 1.3; }
+      .prose-body h4 { font-size: 17px; margin: 1.6em 0 0.55em; line-height: 1.3; font-weight: 600; }
 
       .prose-body a {
         color: var(--accent-deep);
@@ -200,172 +249,189 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
         color: var(--accent-hover);
         text-decoration-color: currentColor;
       }
-      .prose-body strong { color: var(--ink); font-weight: 700; }
-      .prose-body em { font-style: italic; color: var(--ink-soft); }
+      .prose-body strong { color: var(--ink); font-weight: 600; }
+      /* Kami: no italic. Keep semantic <em> but render upright, emphasized by color only. */
+      .prose-body em { font-style: normal; color: var(--ink-soft); }
 
       .prose-body img {
         max-width: 100%;
         height: auto;
-        margin: 1.8em auto;
+        margin: 1.6em auto;
         display: block;
-        border-radius: 2px;
-        box-shadow: 0 1px 3px rgba(20,40,70,0.08), 0 10px 40px rgba(20,40,70,0.08);
+        border-radius: 3px;
+        /* ring shadow only, no hard drop */
+        box-shadow: 0 0 0 1px var(--rule);
       }
-      .dark .prose-body img { box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 10px 40px rgba(0,0,0,0.35); }
+      .dark .prose-body img { box-shadow: 0 0 0 1px var(--rule); }
 
       .prose-body blockquote {
-        border-left: 2px solid var(--ink-faded);
-        padding: 0.2em 0 0.2em 1.3em;
-        margin: 1.8em 0 1.8em 0.5em;
+        border-left: 2px solid var(--accent);
+        padding: 0.15em 0 0.15em 1.1em;
+        margin: 1.4em 0 1.4em 0.3em;
         color: var(--ink-soft);
-        font-style: italic;
+        font-style: normal;               /* Kami: no italic */
         text-align: left;
       }
-      .prose-body blockquote p { margin: 0.6em 0; }
+      .prose-body blockquote p { margin: 0.45em 0; }
       .prose-body blockquote p:first-child { margin-top: 0; }
       .prose-body blockquote p:last-child { margin-bottom: 0; }
 
-      .prose-body ul, .prose-body ol { padding-left: 1.5em; margin: 1.2em 0; text-align: left; }
-      .prose-body li { margin: 0.35em 0; }
+      .prose-body ul, .prose-body ol {
+        padding-left: 1.35em;
+        margin: 1em 0;
+        text-align: left;
+        line-height: 1.55;
+      }
+      .prose-body li { margin: 0.2em 0; }
+      .prose-body ul li::marker { color: var(--accent); }
 
       .prose-body code {
         font-family: "JetBrains Mono", ui-monospace, monospace;
-        font-size: 0.88em;
-        padding: 0.15em 0.45em;
-        background: var(--bg-sky-soft);
+        font-size: 0.86em;
+        padding: 0.1em 0.42em;
+        background: var(--bg-panel);
+        border: 1px solid var(--rule-soft);
         border-radius: 3px;
         color: var(--accent-deep);
       }
-      .dark .prose-body code { color: var(--accent); }
+      .dark .prose-body code {
+        color: var(--accent);
+        background: var(--bg-soft);
+        border-color: var(--rule);
+      }
       .prose-body pre {
-        padding: 1.15em 1.35em;
+        padding: 1em 1.2em;
         border-radius: 4px;
         overflow-x: auto;
-        margin: 1.8em 0;
-        font-size: 14px;
-        line-height: 1.7;
-        background: #0d141d !important;
+        margin: 1.5em 0;
+        font-size: 13.5px;
+        line-height: 1.55;
+        background: var(--bg-panel);
         border: 1px solid var(--rule);
         text-align: left;
+        color: var(--ink);
       }
-      .prose-body pre code { background: transparent; padding: 0; color: #d8dfe8; }
+      .prose-body pre code {
+        background: transparent;
+        padding: 0;
+        color: inherit;
+        border: none;
+      }
+      .dark .prose-body pre {
+        background: #18171a;
+        border-color: #30302e;
+      }
+      .dark .prose-body pre code { color: #d8d4c9; }
 
       .prose-body hr {
         border: 0;
         text-align: center;
-        margin: 3em 0;
+        margin: 2.6em 0;
       }
       .prose-body hr::before {
         content: "· · ·";
         color: var(--ink-faded);
         letter-spacing: 0.6em;
-        font-size: 1.2em;
+        font-size: 1.1em;
       }
 
       .prose-body table {
         border-collapse: collapse;
-        margin: 1.8em 0;
-        font-size: 15px;
+        margin: 1.5em 0;
+        font-size: 14.5px;
       }
       .prose-body th, .prose-body td {
         border: 1px solid var(--rule);
-        padding: 0.6em 0.95em;
+        padding: 0.5em 0.8em;
         text-align: left;
       }
-      .prose-body th { background: var(--bg-sky-soft); font-weight: 600; }
+      .prose-body th { background: var(--bg-panel); font-weight: 600; }
 
       /* ==========================================================
-         Home-only tokens
+         Home-only tokens — parchment hero with quiet sky whisper
          ========================================================== */
-      /* Actual-sky gradient: deeper blue at the top, fading down
-         to the page background. Vertical direction reads like the horizon. */
       .hero-panel {
         position: relative;
         overflow: hidden;
         background: linear-gradient(
           180deg,
-          var(--bg-sky-top) 0%,
-          var(--bg-sky) 45%,
-          var(--bg-sky-soft) 80%,
+          var(--hero-top) 0%,
+          var(--hero-mid) 60%,
           var(--bg) 100%
         );
       }
       .hero-panel > * { position: relative; z-index: 1; }
 
-      /* Softly drifting clouds — pure CSS blurred radial gradients. */
+      /* Softly drifting atmosphere — now warm tones instead of heavy sky. */
       .hero-cloud {
         position: absolute;
         border-radius: 50%;
         pointer-events: none;
-        filter: blur(60px);
+        filter: blur(70px);
         will-change: transform;
       }
       .hero-cloud-1 {
-        width: 380px; height: 380px;
-        top: -120px; left: -80px;
-        background: radial-gradient(circle, var(--bg-sky-top) 0%, transparent 70%);
-        opacity: 0.55;
-        animation: drift-1 24s ease-in-out infinite;
+        width: 340px; height: 340px;
+        top: -100px; left: -80px;
+        background: radial-gradient(circle, var(--accent-pale) 0%, transparent 70%);
+        opacity: 0.35;
+        animation: drift-1 30s ease-in-out infinite;
       }
       .hero-cloud-2 {
-        width: 460px; height: 320px;
-        top: 40px; right: -120px;
-        background: radial-gradient(ellipse, var(--bg-sky) 0%, transparent 70%);
-        opacity: 0.5;
-        animation: drift-2 32s ease-in-out infinite;
+        width: 400px; height: 280px;
+        top: 50px; right: -120px;
+        background: radial-gradient(ellipse, var(--bg-sand) 0%, transparent 70%);
+        opacity: 0.45;
+        animation: drift-2 36s ease-in-out infinite;
       }
       .hero-cloud-3 {
-        width: 220px; height: 220px;
+        width: 200px; height: 200px;
         bottom: -60px; left: 45%;
-        background: radial-gradient(circle, var(--bg-sky-soft) 0%, transparent 70%);
-        opacity: 0.5;
-        animation: drift-3 20s ease-in-out infinite;
+        background: radial-gradient(circle, var(--bg-panel) 0%, transparent 70%);
+        opacity: 0.4;
+        animation: drift-3 26s ease-in-out infinite;
       }
       @keyframes drift-1 {
         0%, 100% { transform: translate(0, 0); }
-        50%      { transform: translate(55px, 35px); }
+        50%      { transform: translate(45px, 30px); }
       }
       @keyframes drift-2 {
         0%, 100% { transform: translate(0, 0); }
-        50%      { transform: translate(-70px, 45px); }
+        50%      { transform: translate(-55px, 40px); }
       }
       @keyframes drift-3 {
-        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-        50%      { transform: translate(25px, -30px) scale(1.15); opacity: 0.6; }
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+        50%      { transform: translate(20px, -25px) scale(1.1); opacity: 0.5; }
       }
 
       .hero-title {
-        font-family: "Noto Serif SC", Georgia, serif;
-        font-weight: 900;
-        letter-spacing: -0.01em;
-        line-height: 0.95;
+        font-family: "Newsreader", "Noto Serif SC", Georgia, serif;
+        font-weight: 500;                   /* Kami: serif locked at 500 */
+        letter-spacing: -0.005em;
+        line-height: 1.05;
       }
-      /* Staggered letter reveal on initial load. Each <span> gets an
-         inline animation-delay from the template. */
       .hero-title span {
         display: inline-block;
         opacity: 0;
-        transform: translateY(0.5em);
+        transform: translateY(0.4em);
         animation: letterReveal 0.75s cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
       }
       @keyframes letterReveal {
         to { opacity: 1; transform: translateY(0); }
       }
 
-      /* Post entries on home — fade+rise as they enter viewport. */
       .post-reveal {
         opacity: 0;
-        transform: translateY(18px);
+        transform: translateY(16px);
         transition:
-          opacity   0.85s cubic-bezier(0.2, 0.8, 0.2, 1),
-          transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1);
+          opacity   0.75s cubic-bezier(0.2, 0.8, 0.2, 1),
+          transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
       .post-reveal.is-visible {
         opacity: 1;
         transform: translateY(0);
       }
 
-      /* Respect user preference: kill all motion. */
       @media (prefers-reduced-motion: reduce) {
         .hero-cloud { animation: none; }
         .hero-title span { opacity: 1; transform: none; animation: none; }
@@ -373,29 +439,28 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       }
 
       .home-post-title {
-        font-family: "Noto Serif SC", Georgia, serif;
-        font-weight: 700;
-        line-height: 1.3;
-        letter-spacing: 0.005em;
+        font-family: "Newsreader", "Noto Serif SC", Georgia, serif;
+        font-weight: 500;                   /* Kami */
+        line-height: 1.25;
+        letter-spacing: 0;
         color: var(--ink);
       }
       .home-post-title a:hover { color: var(--accent-hover); }
       .home-post-date {
         font-family: "JetBrains Mono", ui-monospace, monospace;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 500;
         letter-spacing: 0.08em;
         color: var(--accent-deep);
       }
       .dark .home-post-date { color: var(--accent); }
       .home-post-tag {
-        font-size: 12px;
-        letter-spacing: 0.06em;
+        font-size: 11.5px;
+        letter-spacing: 0.04em;
         font-weight: 500;
         color: var(--ink-faded);
       }
 
-      /* Subtle divider between posts on home */
       .home-divider {
         height: 1px;
         background: linear-gradient(
@@ -408,13 +473,13 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       }
 
       /* ==========================================================
-         Comments
+         Comments & inputs — warm parchment surfaces with ring focus
          ========================================================== */
       .comment-card {
         background: var(--bg-panel);
         border: 1px solid var(--rule);
       }
-      .dark .comment-card { background: var(--bg-sky-soft); }
+      .dark .comment-card { background: var(--bg-soft); }
 
       .paper-input {
         background: var(--bg-panel);
@@ -425,33 +490,37 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
       .paper-input:focus {
         outline: none;
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-pale);
+        box-shadow: 0 0 0 3px var(--accent-pale);   /* ring, Kami-style */
       }
       .dark .paper-input { background: var(--bg-panel); }
 
       .paper-btn {
         background: var(--accent);
         color: #fff;
-        transition: background 0.15s;
-        letter-spacing: 0.1em;
+        transition: background 0.15s, box-shadow 0.15s;
+        letter-spacing: 0.08em;
+        box-shadow: 0 0 0 1px var(--accent-deep);   /* Kami ring, not drop */
       }
       .paper-btn:hover { background: var(--accent-hover); }
 
-      /* Sky accent chip used on home date, etc. */
+      /* Date chip — Kami-style solid-hex tag, small radius */
       .chip-sky {
         display: inline-flex;
         align-items: center;
         gap: 0.4em;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: var(--bg-sky);
+        padding: 3px 9px;
+        border-radius: 3px;                  /* Kami 2-4pt radius */
+        background: var(--accent-pale);
         color: var(--accent-deep);
         font-family: "JetBrains Mono", ui-monospace, monospace;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 500;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
       }
-      .dark .chip-sky { color: var(--accent); }
+      .dark .chip-sky {
+        background: var(--accent-pale);
+        color: var(--accent);
+      }
 
       /* Scroll offset */
       [id] { scroll-margin-top: 80px; }
@@ -464,7 +533,7 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
   <body class="antialiased">
     <nav class="sticky top-0 z-40 backdrop-blur-md" style="background: color-mix(in srgb, var(--bg) 85%, transparent); border-bottom: 1px solid var(--rule);">
       <div class="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between">
-        <a href="/" class="text-[1.4rem] font-bold tracking-tight font-serif-sc" style="color: var(--ink);">PSYcHiC</a>
+        <a href="/" class="text-[1.4rem] tracking-tight font-serif-sc" style="color: var(--ink);">PSYcHiC</a>
         <div class="flex items-center gap-0.5 sm:gap-1 text-sm" style="color: var(--ink-soft);">
           <a href="/" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Home</a>
           <a href="/archive" class="px-2.5 py-1.5 rounded hover:text-[color:var(--accent-deep)] transition-colors">Archive</a>
