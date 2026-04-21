@@ -1,0 +1,515 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+---
+<AdminLayout title="文章" requireEasymde={true}>
+  <!-- Login gate -->
+  <section id="login-box" class="hidden card p-6 max-w-md mx-auto">
+    <p class="mb-4 text-sm" style="color: var(--ink-soft);">请输入管理密码:</p>
+    <div class="flex gap-2">
+      <input id="pw" type="password" class="input flex-1" autofocus />
+      <button id="login-btn" class="btn btn-dark">登录</button>
+    </div>
+    <p id="login-err" class="hidden mt-3 text-sm" style="color: #dc2626;"></p>
+  </section>
+
+  <!-- Posts list view -->
+  <section id="list-view" class="hidden">
+    <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold" style="color: var(--ink);">文章</h1>
+        <p class="text-sm mt-1" style="color: var(--ink-soft);">
+          <span id="list-count">—</span> 篇
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <input id="filter-input" class="input w-56" type="search" placeholder="按标题/slug 筛选" />
+        <button id="new-post-btn" class="btn btn-dark">+ 新文章</button>
+      </div>
+    </div>
+
+    <div id="list-container" class="card overflow-hidden">
+      <div class="p-8 text-center" style="color: var(--ink-faded);"><span class="spinner"></span> 加载中…</div>
+    </div>
+  </section>
+
+  <!-- Editor view (new OR edit) -->
+  <section id="edit-view" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div class="flex items-center gap-3">
+        <button id="back-to-list" class="btn btn-secondary">← 返回列表</button>
+        <h1 id="edit-title" class="text-lg font-semibold" style="color: var(--ink);">编辑文章</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="delete-btn" class="btn btn-danger hidden">🗑 删除</button>
+        <button id="save-btn" class="btn btn-primary">保存 & 发布</button>
+      </div>
+    </div>
+
+    <div class="card p-5 mb-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label">标题 Title</label>
+          <input id="meta-title" class="input" />
+        </div>
+        <div>
+          <label class="label">日期时间 Date</label>
+          <input id="meta-date" class="input" type="datetime-local" />
+        </div>
+      </div>
+      <div class="mt-4">
+        <label class="label">文件名 Filename</label>
+        <div class="flex items-baseline gap-2">
+          <span class="text-xs font-mono" style="color: var(--ink-faded);">src/content/posts/</span>
+          <input id="meta-filename" class="input font-mono flex-1" placeholder="2026-04-21-my-slug.md" />
+        </div>
+        <p class="text-xs mt-1" style="color: var(--ink-faded);">
+          决定 URL: <span id="url-preview" style="color: var(--accent);">/post/...</span>
+          &nbsp;&middot; 小写、不含空格、以 <code>.md</code> 结尾
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 mt-4">
+        <div>
+          <label class="label">标签 Tags(逗号分隔)</label>
+          <input id="meta-tags" class="input" placeholder="日记, 技术思考" />
+        </div>
+        <div class="flex items-end">
+          <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+            <input id="meta-draft" type="checkbox" class="w-4 h-4 rounded" />
+            草稿(不发布)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <label class="label">正文(Markdown)</label>
+      <textarea id="markdown" class="w-full"></textarea>
+      <p id="edit-status" class="hidden mt-3 text-sm"></p>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var PW_KEY = "quake0day-admin-pw";
+      var loginBox = document.getElementById("login-box");
+      var listView = document.getElementById("list-view");
+      var editView = document.getElementById("edit-view");
+      var listContainer = document.getElementById("list-container");
+      var listCount = document.getElementById("list-count");
+      var filterInput = document.getElementById("filter-input");
+      var newBtn = document.getElementById("new-post-btn");
+      var backBtn = document.getElementById("back-to-list");
+      var saveBtn = document.getElementById("save-btn");
+      var deleteBtn = document.getElementById("delete-btn");
+      var editTitle = document.getElementById("edit-title");
+      var urlPreview = document.getElementById("url-preview");
+      var metaTitle = document.getElementById("meta-title");
+      var metaDate = document.getElementById("meta-date");
+      var metaFilename = document.getElementById("meta-filename");
+      var metaTags = document.getElementById("meta-tags");
+      var metaDraft = document.getElementById("meta-draft");
+      var editStatus = document.getElementById("edit-status");
+      var mdTextarea = document.getElementById("markdown");
+
+      var currentPw = localStorage.getItem(PW_KEY) || "";
+      var easymde = null;
+      // Mode state
+      var currentSha = null;         // existing post sha, null for new
+      var originalSlug = null;       // original filename's slug, null for new
+      var allPosts = [];             // list cache
+
+      // ============================================================
+      // LOGIN
+      // ============================================================
+      function showLogin(err) {
+        loginBox.classList.remove("hidden");
+        listView.classList.add("hidden");
+        editView.classList.add("hidden");
+        if (err) {
+          var el = document.getElementById("login-err");
+          el.textContent = err;
+          el.classList.remove("hidden");
+        }
+      }
+      function enterAdmin() {
+        loginBox.classList.add("hidden");
+        document.getElementById("login-err").classList.add("hidden");
+        showList();
+      }
+      function tryLogin(pw) {
+        fetch("/api/admin/posts", { headers: { "X-Admin-Password": pw } })
+          .then(function (r) {
+            if (r.status === 401) {
+              showLogin("密码错误");
+              localStorage.removeItem(PW_KEY);
+              currentPw = "";
+              return;
+            }
+            if (!r.ok) {
+              return r.text().then(function (t) {
+                showLogin("服务器错误 " + r.status + ": " + t.slice(0, 200));
+              });
+            }
+            currentPw = pw;
+            localStorage.setItem(PW_KEY, pw);
+            enterAdmin();
+          })
+          .catch(function (e) {
+            showLogin("网络错误: " + e.message);
+          });
+      }
+      document.getElementById("login-btn").addEventListener("click", function () {
+        var v = document.getElementById("pw").value.trim();
+        if (v) tryLogin(v);
+      });
+      document.getElementById("pw").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") document.getElementById("login-btn").click();
+      });
+
+      // ============================================================
+      // LIST
+      // ============================================================
+      function showList() {
+        editView.classList.add("hidden");
+        listView.classList.remove("hidden");
+        loadList();
+      }
+      function loadList() {
+        listContainer.innerHTML =
+          '<div class="p-8 text-center" style="color: var(--ink-faded);"><span class="spinner"></span> 加载中…</div>';
+        fetch("/api/admin/posts", { headers: { "X-Admin-Password": currentPw } })
+          .then(function (r) {
+            if (r.status === 401) { showLogin("登录已过期"); throw new Error("401"); }
+            return r.json();
+          })
+          .then(function (data) {
+            allPosts = data.posts || [];
+            renderList(allPosts);
+          })
+          .catch(function (e) {
+            if (e.message !== "401") {
+              listContainer.innerHTML =
+                '<div class="p-8 text-center" style="color: #c03;">加载失败: ' + e.message + "</div>";
+            }
+          });
+      }
+      function renderList(posts) {
+        listCount.textContent = posts.length;
+        if (!posts.length) {
+          listContainer.innerHTML =
+            '<div class="p-8 text-center" style="color: var(--ink-faded);">没有匹配的文章</div>';
+          return;
+        }
+        var rows = posts
+          .map(function (p) {
+            return (
+              '<div class="flex items-baseline gap-4 p-4 hover:bg-gray-50 cursor-pointer border-b" style="border-color: var(--rule);" data-slug="' +
+              encodeURIComponent(p.slug) +
+              '">' +
+              '<time class="text-xs font-mono min-w-[6rem]" style="color: var(--accent);">' +
+              (p.date || "—") +
+              "</time>" +
+              '<span class="flex-1 text-sm truncate" style="color: var(--ink);">' +
+              escapeHtml(p.slug) +
+              "</span>" +
+              '<span class="text-xs font-mono" style="color: var(--ink-faded);">' +
+              Math.round((p.size || 0) / 100) / 10 +
+              " KB</span>" +
+              "</div>"
+            );
+          })
+          .join("");
+        listContainer.innerHTML = rows;
+        listContainer.querySelectorAll("[data-slug]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            var slug = decodeURIComponent(el.getAttribute("data-slug"));
+            openEditor(slug);
+          });
+        });
+      }
+      filterInput.addEventListener("input", function () {
+        var q = filterInput.value.trim().toLowerCase();
+        if (!q) renderList(allPosts);
+        else renderList(allPosts.filter(function (p) { return p.slug.toLowerCase().indexOf(q) !== -1; }));
+      });
+
+      // ============================================================
+      // EDITOR
+      // ============================================================
+      function ensureEasymde() {
+        if (easymde) return easymde;
+        easymde = new EasyMDE({
+          element: mdTextarea,
+          spellChecker: false,
+          autoDownloadFontAwesome: true,
+          toolbar: [
+            "bold", "italic", "heading", "|",
+            "quote", "unordered-list", "ordered-list", "|",
+            "link", "image", "code", "table", "horizontal-rule", "|",
+            "preview", "side-by-side", "fullscreen", "|",
+            "guide",
+          ],
+          minHeight: "480px",
+          status: ["lines", "words", "cursor"],
+        });
+        return easymde;
+      }
+
+      function openEditor(slug) {
+        listView.classList.add("hidden");
+        editView.classList.remove("hidden");
+        ensureEasymde();
+        editStatus.classList.add("hidden");
+        if (!slug) {
+          // new post
+          originalSlug = null;
+          currentSha = null;
+          editTitle.textContent = "新文章";
+          deleteBtn.classList.add("hidden");
+          var d = new Date();
+          var dateStr = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+          metaTitle.value = "";
+          metaDate.value = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+          metaFilename.value = dateStr + "-untitled.md";
+          metaTags.value = "";
+          metaDraft.checked = false;
+          easymde.value("");
+          updateUrlPreview();
+          return;
+        }
+        // existing
+        originalSlug = slug;
+        editTitle.textContent = "编辑文章";
+        deleteBtn.classList.remove("hidden");
+        editStatus.textContent = "加载中…";
+        editStatus.className = "mt-3 text-sm";
+        editStatus.style.color = "var(--ink-faded)";
+        editStatus.classList.remove("hidden");
+        fetch("/api/admin/posts/" + encodeURIComponent(slug), {
+          headers: { "X-Admin-Password": currentPw },
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              editStatus.textContent = "加载失败: " + (res.d.error || "未知错误");
+              editStatus.style.color = "#c03";
+              return;
+            }
+            currentSha = res.d.sha;
+            populateFromRaw(slug, res.d.content);
+            editStatus.classList.add("hidden");
+          })
+          .catch(function (e) {
+            editStatus.textContent = "网络错误: " + e.message;
+            editStatus.style.color = "#c03";
+          });
+      }
+      function populateFromRaw(slug, raw) {
+        // Split frontmatter and body
+        var fm = { title: slug, date: "", tags: [], draft: false };
+        var body = raw;
+        var m = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+        if (m) {
+          body = m[2];
+          m[1].split("\n").forEach(function (line) {
+            var kv = line.match(/^(\w+):\s*(.*)$/);
+            if (!kv) return;
+            var k = kv[1], v = kv[2].trim();
+            if (k === "title") fm.title = stripQuotes(v);
+            else if (k === "date") fm.date = stripQuotes(v);
+            else if (k === "draft") fm.draft = /true/i.test(v);
+            else if (k === "tags") {
+              // inline array: tags: [a, b]   OR  empty, items on following lines
+              var inline = v.match(/^\[(.*)\]$/);
+              if (inline) {
+                fm.tags = inline[1].split(",").map(function (s) { return s.trim().replace(/^['"]|['"]$/g, ""); }).filter(Boolean);
+              } else {
+                fm.tags = [];
+              }
+            }
+          });
+          // list-style tags: - item
+          var tagListMatch = m[1].match(/^tags:\s*$([\s\S]*?)^(\w|$)/m);
+          if (tagListMatch && fm.tags.length === 0) {
+            fm.tags = [];
+            tagListMatch[1].split("\n").forEach(function (line) {
+              var mm = line.match(/^\s*-\s*(.+)\s*$/);
+              if (mm) fm.tags.push(stripQuotes(mm[1]));
+            });
+          }
+        }
+        metaTitle.value = fm.title;
+        metaDate.value = isoToLocal(fm.date);
+        metaFilename.value = slug + ".md";
+        metaTags.value = fm.tags.join(", ");
+        metaDraft.checked = !!fm.draft;
+        easymde.value(body.replace(/^\s+/, ""));
+        updateUrlPreview();
+      }
+      function buildRaw() {
+        var tags = metaTags.value
+          .split(",")
+          .map(function (s) { return s.trim(); })
+          .filter(Boolean);
+        var tagYaml = tags.length
+          ? "\n" + tags.map(function (t) { return "  - " + yamlSafe(t); }).join("\n")
+          : " []";
+        var fm =
+          "---\n" +
+          "title: " + yamlSafe(metaTitle.value) + "\n" +
+          "date: " + localToIso(metaDate.value) + "\n" +
+          "tags:" + tagYaml + "\n" +
+          "draft: " + (metaDraft.checked ? "true" : "false") + "\n" +
+          "---\n\n";
+        return fm + easymde.value();
+      }
+
+      newBtn.addEventListener("click", function () { openEditor(null); });
+      backBtn.addEventListener("click", function () { showList(); });
+
+      saveBtn.addEventListener("click", function () {
+        if (!metaTitle.value.trim()) { alertStatus("标题不能为空", "err"); return; }
+        if (!metaDate.value) { alertStatus("日期不能为空", "err"); return; }
+        var filename = metaFilename.value.trim();
+        if (!/\.md$/.test(filename)) { alertStatus("文件名必须以 .md 结尾", "err"); return; }
+        saveBtn.disabled = true;
+        alertStatus("保存中…", "info");
+        var body = buildRaw();
+
+        if (originalSlug === null) {
+          // create
+          fetch("/api/admin/posts", {
+            method: "POST",
+            headers: { "content-type": "application/json", "X-Admin-Password": currentPw },
+            body: JSON.stringify({ filename: filename.toLowerCase(), content: body }),
+          })
+            .then(resOrThrow)
+            .then(function (d) {
+              alertStatus("✓ 已提交 GitHub,约 60 秒后上线", "ok");
+              originalSlug = d.slug;
+              currentSha = d.sha;
+              deleteBtn.classList.remove("hidden");
+              editTitle.textContent = "编辑文章";
+            })
+            .catch(function (e) { alertStatus("保存失败: " + e.message, "err"); })
+            .finally(function () { saveBtn.disabled = false; });
+        } else {
+          // update — if filename changed, we need to delete old + create new
+          var newSlug = filename.replace(/\.md$/, "").toLowerCase();
+          var renamed = newSlug !== originalSlug;
+          if (renamed) {
+            // Delete old first, then create new
+            fetch("/api/admin/posts/" + encodeURIComponent(originalSlug), {
+              method: "DELETE",
+              headers: { "content-type": "application/json", "X-Admin-Password": currentPw },
+              body: JSON.stringify({ sha: currentSha }),
+            })
+              .then(resOrThrow)
+              .then(function () {
+                return fetch("/api/admin/posts", {
+                  method: "POST",
+                  headers: { "content-type": "application/json", "X-Admin-Password": currentPw },
+                  body: JSON.stringify({ filename: filename.toLowerCase(), content: body }),
+                }).then(resOrThrow);
+              })
+              .then(function (d) {
+                originalSlug = d.slug;
+                currentSha = d.sha;
+                alertStatus("✓ 已重命名并保存", "ok");
+              })
+              .catch(function (e) { alertStatus("保存失败: " + e.message, "err"); })
+              .finally(function () { saveBtn.disabled = false; });
+          } else {
+            fetch("/api/admin/posts/" + encodeURIComponent(originalSlug), {
+              method: "PUT",
+              headers: { "content-type": "application/json", "X-Admin-Password": currentPw },
+              body: JSON.stringify({ content: body, sha: currentSha }),
+            })
+              .then(resOrThrow)
+              .then(function (d) {
+                currentSha = d.sha;
+                alertStatus("✓ 已保存,约 60 秒后上线", "ok");
+              })
+              .catch(function (e) { alertStatus("保存失败: " + e.message, "err"); })
+              .finally(function () { saveBtn.disabled = false; });
+          }
+        }
+      });
+
+      deleteBtn.addEventListener("click", function () {
+        if (!originalSlug) return;
+        if (!confirm("确认永久删除这篇文章? (下次部署后站上消失)")) return;
+        deleteBtn.disabled = true;
+        fetch("/api/admin/posts/" + encodeURIComponent(originalSlug), {
+          method: "DELETE",
+          headers: { "content-type": "application/json", "X-Admin-Password": currentPw },
+          body: JSON.stringify({ sha: currentSha }),
+        })
+          .then(resOrThrow)
+          .then(function () {
+            alertStatus("✓ 已删除。1 分钟后站上不再可见。", "ok");
+            setTimeout(showList, 1200);
+          })
+          .catch(function (e) { alertStatus("删除失败: " + e.message, "err"); })
+          .finally(function () { deleteBtn.disabled = false; });
+      });
+
+      metaFilename.addEventListener("input", updateUrlPreview);
+      function updateUrlPreview() {
+        var slug = (metaFilename.value || "").replace(/\.md$/, "").toLowerCase();
+        urlPreview.textContent = "/post/" + slug;
+      }
+
+      // ============================================================
+      // HELPERS
+      // ============================================================
+      function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+      function stripQuotes(s) {
+        s = s.trim();
+        if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+          return s.slice(1, -1);
+        }
+        return s;
+      }
+      function yamlSafe(s) {
+        // Quote if contains : # - etc, simple-quote approach
+        if (/[:#&*!|>'"`%@,{}\[\]]|^\s|\s$/.test(s)) return JSON.stringify(s);
+        return s;
+      }
+      function isoToLocal(iso) {
+        if (!iso) return "";
+        // iso: 2026-04-20T21:00:33+00:00 → 2026-04-20T21:00
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return "";
+        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) +
+          "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      }
+      function localToIso(local) {
+        if (!local) return new Date().toISOString();
+        // local: 2026-04-20T21:00 → 2026-04-20T21:00:00+00:00 (treat as UTC for consistency)
+        var d = new Date(local);
+        return d.toISOString();
+      }
+      function escapeHtml(s) {
+        return String(s || "").replace(/[&<>"']/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
+      }
+      function resOrThrow(r) {
+        return r.json().then(function (d) {
+          if (!r.ok) throw new Error(d.error || ("HTTP " + r.status));
+          return d;
+        });
+      }
+      function alertStatus(msg, kind) {
+        editStatus.textContent = msg;
+        editStatus.className = "mt-3 text-sm";
+        editStatus.style.color = kind === "err" ? "#c03" : kind === "ok" ? "var(--accent-hover)" : "var(--ink-soft)";
+        editStatus.classList.remove("hidden");
+      }
+
+      // Kick off
+      if (currentPw) tryLogin(currentPw); else showLogin();
+    })();
+  </script>
+</AdminLayout>

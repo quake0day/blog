@@ -11,10 +11,14 @@
             "id": "620b2386b5a8b165",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "src/content/posts/2026-04-21-写于2026年学术休假期间.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "2026-04-21-写于2026年学术休假期间"
             }
           }
         ]
@@ -179,9 +183,29 @@
   },
   "active": "620b2386b5a8b165",
   "lastOpenFiles": [
+    "dist/24/index.html",
+    "dist/24",
+    "dist/23/index.html",
+    "dist/23",
+    "dist/22/index.html",
+    "dist/22",
+    "dist/21/index.html",
+    "dist/21",
+    "dist/20/index.html",
+    "dist/20",
+    "dist/19/index.html",
+    "dist/static/img/tile.png",
+    "dist/static/img/rss2.png",
+    "dist/static/img/rss.png",
+    "dist/static/img/rss1.png",
+    "dist/static/img/loader-small.gif",
+    "dist/static/img/loader-small-inverted.gif",
+    "dist/static/img/loader-mini.gif",
+    "dist/static/img/loader-mini-inverted.gif",
+    "dist/static/img/loader-medium.gif",
+    "dist/static/img/loader-medium-inverted.gif",
     "src/pages/post/写于2026 年学术休假期间.md",
     "src/content/posts/2026-04-21-写于2026年学术休假期间.md",
-    "_templates/新文章.md",
-    "_templates"
+    "_templates/新文章.md"
   ]
 }

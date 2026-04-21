@@ -1,10 +1,10 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import AdminLayout from "../../layouts/AdminLayout.astro";
 ---
-<Layout title="评论管理" description="Comment moderation">
+<AdminLayout title="留言">
   <header class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">评论管理</h1>
-    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">只有"已通过"的留言会显示在前台。</p>
+    <h1 class="text-2xl font-bold" style="color: var(--ink);">留言</h1>
+    <p class="text-sm mt-1" style="color: var(--ink-soft);">只有"已通过"的留言会显示在前台。</p>
   </header>
 
   <section id="login-box" class="hidden border border-stone-300 dark:border-gray-700 rounded-lg p-5">
@@ -29,7 +29,7 @@ import Layout from "../../layouts/Layout.astro";
       <p class="text-sm text-gray-500">加载中…</p>
     </div>
   </section>
-</Layout>
+</AdminLayout>
 
 <script is:inline>
   (function () {
