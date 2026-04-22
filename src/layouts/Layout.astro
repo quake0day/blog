@@ -543,6 +543,59 @@ if (lang === "en") {
       /* Selection */
       ::selection { background: var(--accent-pale); color: var(--ink); }
 
+      /* ==========================================================
+         English-only typography overrides.
+         The defaults above are CJK-optimal (inter-character justify,
+         hanging punctuation, tight 1.55 leading, +0.002em tracking).
+         Those behaviors make Latin prose look uneven and cramped, so
+         under html[lang="en"] we switch back to left-aligned text with
+         more breathing room and remove the CJK-specific micro-tuning.
+         ========================================================== */
+      html[lang="en"] body {
+        font-size: 16px;
+        line-height: 1.6;
+        letter-spacing: 0;
+      }
+
+      html[lang="en"] .prose-body {
+        line-height: 1.7;
+        letter-spacing: 0;
+        text-align: left;
+        text-align-last: auto;
+        text-justify: auto;
+        hanging-punctuation: none;
+      }
+      @media (min-width: 640px) {
+        html[lang="en"] .prose-body { line-height: 1.72; }
+      }
+      html[lang="en"] .prose-body p { margin: 1.35em 0; }
+      html[lang="en"] .prose-body blockquote {
+        padding: 0.35em 0 0.35em 1.15em;
+        margin: 1.55em 0 1.55em 0.2em;
+      }
+      html[lang="en"] .prose-body blockquote p { margin: 0.55em 0; }
+
+      /* Newsreader at display sizes: lock optical sizing to the big-
+         glyph end of the axis so 40-96px titles don't read as thin. */
+      html[lang="en"] .hero-title,
+      html[lang="en"] .home-post-title,
+      html[lang="en"] .font-serif-sc {
+        font-variation-settings: "opsz" 48;
+        letter-spacing: -0.008em;
+      }
+      html[lang="en"] .prose-body h1,
+      html[lang="en"] .prose-body h2,
+      html[lang="en"] .prose-body h3,
+      html[lang="en"] .prose-body h4 {
+        font-variation-settings: "opsz" 24;
+        letter-spacing: -0.004em;
+        line-height: 1.2;
+      }
+
+      /* Tailwind's `tracking-tight` (−0.025em) clashes with Newsreader
+         at large sizes — relax it for the EN side. */
+      html[lang="en"] .tracking-tight { letter-spacing: -0.012em; }
+
       /* Language toggle — Kami-style solid-hex tag */
       .lang-toggle {
         font-size: 11px;
