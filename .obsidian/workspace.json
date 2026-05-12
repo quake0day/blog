@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "src/content/posts/2026-04-21-写于2026年学术休假期间.md",
+                "file": "src/content/posts/KISS 原则对于 AI 时代的开发变得更重要了.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-04-21-写于2026年学术休假期间"
+              "title": "KISS 原则对于 AI 时代的开发变得更重要了"
             }
           }
         ]
@@ -94,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "src/content/posts/KISS 原则对于 AI 时代的开发变得更重要了.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for KISS 原则对于 AI 时代的开发变得更重要了"
             }
           },
           {
@@ -166,8 +167,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,6 +183,8 @@
   },
   "active": "620b2386b5a8b165",
   "lastOpenFiles": [
+    "src/content/posts/2026-04-21-写于2026年学术休假期间.md",
+    "src/content/posts/KISS 原则对于 AI 时代的开发变得更重要了.md",
     "src/pages/en/tagged/[tag].astro",
     "src/pages/en/post/[slug].astro",
     "src/pages/en/tags.astro",
@@ -193,7 +195,6 @@
     "src/pages/en/404.astro",
     "src/pages/en",
     "src/content/posts-en",
-    "scripts/translate-posts.mjs",
     "dist/static/img/tile.png",
     "dist/static/img/rss2.png",
     "dist/static/img/rss1.png",
@@ -205,7 +206,6 @@
     "dist/static/img/loader-medium.gif",
     "dist/static/img/loader-medium-inverted.gif",
     "src/pages/post/写于2026 年学术休假期间.md",
-    "src/content/posts/2026-04-21-写于2026年学术休假期间.md",
     "_templates/新文章.md"
   ]
 }
